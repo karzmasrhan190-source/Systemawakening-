@@ -1,736 +1,283 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- كود إثبات ملكية جوجل الجديد -->
-    <meta name="google-site-verification" content="0LPjx60GSkQHMvfd34l-ctSZvAf_yPJq3Pb6CwMs0DQ" />
-    
-    <title>System Awakening - Locked Mode</title>
-    <!-- تم تغيير الخط إلى Changa المناسب لألعاب الفيديو والتطبيقات التقنية -->
-    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;800&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HACKER_IDE // TERMINAL_MODE</title>
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Changa', sans-serif; }
-        
-        :root {
-            --sys-blue: #00a2ff; --sys-cyan: #00d5ff; --sys-blue-glow: rgba(0, 162, 255, 0.6);
-            --sys-green: #00ff75; --sys-red: #ff003c; --sys-red-glow: rgba(255, 0, 60, 0.5);
-            --sys-purple: #b700ff; --sys-gold: #ffea00;
-        }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
 
-        body {
-            background-color: #010308; background-image: radial-gradient(circle at center, #061224 0%, #010308 70%);
-            color: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; overflow-y: auto; overflow-x: hidden; user-select: none; padding: 20px 0;
-        }
+<style>
+  :root {
+    --hacker-green: #00ff41;
+    --hacker-dark: #001100;
+    --hacker-glow: rgba(0, 255, 65, 0.6);
+    --text-muted: #008f11;
+  }
 
-        /* شاشة التحميل الأسطورية */
-        #bootScreen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #010308;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
-            transition: opacity 0.8s ease;
-        }
-        #bootScreen.fade-out { opacity: 0; pointer-events: none; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        .boot-title {
-            font-size: clamp(2rem, 8vw, 4rem); font-weight: 800; color: #fff;
-            text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px var(--sys-cyan), 0 0 30px var(--sys-blue);
-            margin-bottom: 15px; text-align: center;
-            white-space: nowrap; overflow: hidden; width: 0;
-        }
-        .typing-anim { animation: typing 2.5s steps(18, end) forwards; }
-        @keyframes typing { from { width: 0 } to { width: 100% } }
+  body {
+    background-color: #000;
+    color: var(--hacker-green);
+    font-family: 'Consolas', 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+  }
 
-        .boot-signature {
-            font-size: 1.2rem; color: var(--sys-purple); font-weight: 800; letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(183, 0, 255, 0.6); opacity: 0; transform: translateY(20px);
-            text-align: center;
-        }
-        .sig-anim { animation: epicFadeIn 1s ease 2.5s forwards; }
-        
-        /* تصميم زر المتابعة الجديد الاحترافي */
-        .continue-btn {
-            opacity: 0; margin-top: 50px;
-            background: transparent;
-            border: 2px solid var(--sys-cyan); border-radius: 25px;
-            color: #fff; font-size: 1.8rem; font-weight: 800; padding: 12px 60px; cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 213, 255, 0.4);
-            text-shadow: 0 0 10px #fff, 0 0 20px var(--sys-cyan); transition: all 0.3s ease;
-        }
-        .btn-anim { animation: epicFadeIn 1s ease 3s forwards; }
-        .continue-btn:active, .continue-btn:hover { 
-            background: var(--sys-cyan); color: #000; 
-            box-shadow: 0 0 25px var(--sys-cyan), 0 0 40px var(--sys-cyan); text-shadow: none;
-            transform: scale(0.95);
-        }
-        
-        @keyframes epicFadeIn { to { opacity: 1; transform: translateY(0); } }
+  .crt-overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 9999; pointer-events: none;
+  }
 
-        /* تعديلات شاشات النظام وواجهة الموبايل */
-        .window-close-x-btn {
-            position: absolute; top: 12px; left: 12px; width: 32px; height: 32px;
-            background: rgba(255, 0, 60, 0.15); border: 1px solid var(--sys-red); color: #ff4d4d;
-            font-size: 1.1rem; font-weight: 900; cursor: pointer; box-shadow: 0 0 10px var(--sys-red-glow);
-            z-index: 20; transition: all 0.3s ease; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .window-close-x-btn:hover { background: rgba(255, 0, 60, 0.4); color: #fff; transform: scale(1.1) rotate(90deg); }
+  #matrix-canvas {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+  }
 
-        .developer-signature {
-            width: 100%; text-align: center; font-size: 0.8rem; color: rgba(0, 213, 255, 0.4);
-            margin-top: 25px; font-weight: 600; letter-spacing: 1px; text-shadow: 0 0 5px rgba(0, 213, 255, 0.2);
-            border-top: 1px solid rgba(0, 213, 255, 0.1); padding-top: 10px;
-        }
+  .ui-layer {
+    position: relative; z-index: 10; display: flex; flex-direction: column; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+  }
 
-        .system-header { width: 92%; max-width: 700px; display: none; flex-direction: column; gap:15px; align-items: center; margin-bottom: 20px; z-index: 10; }
-        .system-header.active { display: flex; animation: fadeInDown 0.5s ease; }
-        @media (min-width: 600px) { .system-header { flex-direction: row; justify-content: space-between; } }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .rank-badge {
-            background: rgba(0, 162, 255, 0.1); border: 1px solid var(--sys-cyan); padding: 5px 20px; font-size: 1.2rem;
-            font-weight: 800; color: #fff; text-shadow: 0 0 10px var(--sys-cyan); box-shadow: 0 0 15px var(--sys-blue-glow);
-            letter-spacing: 2px; border-radius: 8px;
-        }
+  .top-navbar {
+    display: flex; align-items: center; justify-content: flex-start;
+    background-color: rgba(0, 15, 0, 0.9); padding: 10px 20px;
+    border-bottom: 1px solid var(--hacker-green); box-shadow: 0 0 15px var(--hacker-glow);
+  }
 
-        .system-action-bar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .gen-quest-btn {
-            background: rgba(0, 162, 255, 0.05); border: 2px solid var(--sys-cyan); color: #fff; padding: 10px 15px;
-            font-size: 1.1rem; font-weight: 800; cursor: pointer; box-shadow: 0 0 12px rgba(0, 213, 255, 0.2);
-            transition: all 0.3s; text-align: center; text-shadow: 0 0 5px var(--sys-cyan); width: 100%; margin-bottom: 5px;
-            border-radius: 10px; 
-        }
-        @media (min-width: 400px) { .gen-quest-btn { width: auto; margin-bottom: 0; } }
-        .gen-quest-btn:active { transform: scale(0.96); } 
-        .gen-quest-btn:hover { background: rgba(0, 213, 255, 0.2); color: #fff; box-shadow: 0 0 20px var(--sys-cyan); text-shadow: 0 0 10px #fff; }
-        .supervisor-btn { border-color: var(--sys-purple); color: var(--sys-purple); text-shadow: 0 0 5px rgba(183, 0, 255, 0.5); }
-        .text-btn { border-color: var(--sys-green); color: var(--sys-green); text-shadow: 0 0 5px rgba(0, 255, 117, 0.5); }
-        .penalty-btn { border-color: var(--sys-red); color: var(--sys-red); text-shadow: 0 0 5px var(--sys-red-glow); }
-        .gold-btn { border-color: var(--sys-gold); color: var(--sys-gold); text-shadow: 0 0 5px rgba(255, 234, 0, 0.5); }
+  .main-tabs { display: flex; gap: 15px; align-items: center; }
 
-        .sys-input { 
-            width: 100%; padding: 12px; margin-bottom: 12px; background: rgba(0, 162, 255, 0.05); 
-            border: 2px solid var(--sys-cyan); color: var(--sys-cyan); font-family: 'Changa', sans-serif; 
-            font-size: 1.1rem; font-weight: 600; outline: none; text-align: right; 
-            border-radius: 8px; 
-        }
-        .sys-input:focus { border-color: var(--sys-purple); box-shadow: 0 0 15px rgba(183, 0, 255, 0.4); }
+  .main-btn {
+    background: #000; color: var(--hacker-green); border: 1px solid var(--hacker-green);
+    padding: 8px 20px; font-size: 14px; font-weight: bold; font-family: monospace;
+    cursor: pointer; transition: 0.3s; text-shadow: 0 0 5px var(--hacker-green);
+    box-shadow: 0 0 8px var(--hacker-glow);
+  }
 
-        .sys-custom-select { position: relative; width: 100%; cursor: pointer; user-select: none; }
-        .sys-select-display {
-            background: rgba(0, 162, 255, 0.05); border: 2px solid var(--sys-cyan); color: var(--sys-cyan);
-            padding: 10px; text-align: center; font-size: 1rem; font-weight: 800; transition: 0.3s;
-            border-radius: 8px;
-        }
-        .sys-select-display:hover { border-color: var(--sys-purple); box-shadow: 0 0 10px rgba(183, 0, 255, 0.3); }
-        .sys-select-options {
-            display: none; position: absolute; top: 100%; left: 0; width: 100%; background: rgba(1, 3, 8, 0.98);
-            border: 2px solid var(--sys-purple); border-top: none; z-index: 100; box-shadow: 0 5px 15px rgba(0,0,0,0.8);
-            border-bottom-left-radius: 8px; border-bottom-right-radius: 8px;
-        }
-        .sys-select-options.show { display: block; }
-        .sys-option-item { padding: 10px; color: var(--sys-cyan); text-align: center; border-bottom: 1px solid rgba(0, 213, 255, 0.1); transition: 0.2s; font-size: 1rem; font-weight: 600;}
-        .sys-option-item:hover { background: rgba(183, 0, 255, 0.2); color: #fff; text-shadow: 0 0 5px #fff; }
+  .main-btn.active, .main-btn:hover { 
+    background: var(--hacker-green); color: #000; box-shadow: 0 0 20px var(--hacker-glow);
+  }
 
-        .system-container { perspective: 1200px; display: flex; justify-content: center; align-items: center; width: 100%; }
-        .start-overlay, .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 3, 8, 0.98); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
-        .start-overlay.active, .modal-overlay.active { display: flex; }
-        .modal-overlay { background: rgba(1, 3, 8, 0.95); backdrop-filter: blur(8px); z-index: 2000; }
+  .stealth-btn {
+    background: transparent; border: none; color: #333; font-size: 20px;
+    cursor: pointer; opacity: 0.1; transition: 0.5s; padding: 5px;
+  }
+  
+  .stealth-btn:hover { opacity: 0.8; text-shadow: 0 0 10px red; }
 
-        .system-wrapper { position: relative; width: 92%; max-width: 650px; display: none; transform: rotateX(5deg); transform-style: preserve-3d; }
-        .system-wrapper.active { display: block; animation: animeOpen 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards, holographicFloat 4s ease-in-out infinite 0.5s; transform-origin: center; }
+  .file-tabs-container {
+    background-color: rgba(0, 5, 0, 0.8); display: flex; border-bottom: 1px solid var(--text-muted);
+  }
+  
+  .file-tabs-container.hidden { display: none; }
 
-        @keyframes animeOpen {
-            0% { transform: rotateX(20deg) scaleY(0.01) scaleX(0.05); opacity: 0; filter: brightness(5); }
-            40% { transform: rotateX(10deg) scaleY(0.02) scaleX(1); opacity: 1; filter: brightness(3); box-shadow: 0 0 100px var(--sys-cyan); }
-            100% { transform: rotateX(5deg) scaleY(1) scaleX(1); opacity: 1; filter: brightness(1); }
-        }
-        @keyframes holographicFloat { 0%, 100% { transform: rotateX(5deg) translateY(0); } 50% { transform: rotateX(5deg) translateY(-5px); } }
+  .file-tab {
+    background: transparent; color: var(--text-muted); border: none; padding: 12px 20px;
+    font-size: 14px; font-family: monospace; cursor: pointer; border-top: 2px solid transparent;
+  }
 
-        .outer-frame { position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 1px solid rgba(0, 162, 255, 0.3); box-shadow: 0 0 25px rgba(0, 162, 255, 0.4); pointer-events: none; z-index: 1; border-radius: 15px; }
-        .outer-frame::before, .outer-frame::after { content: ''; position: absolute; width: 18px; height: 112%; top: -6%; border: 2px solid rgba(0, 213, 255, 0.8); background: rgba(0, 162, 255, 0.08); border-radius: 5px; }
-        .outer-frame::before { left: -12px; border-right: none; } .outer-frame::after { right: -12px; border-left: none; }
-        
-        .frame-bar { width: 104%; height: 6px; left: -2%; background: linear-gradient(90deg, transparent, #0044cc 10%, #ffffff 50%, #0044cc 90%, transparent); box-shadow: 0 0 25px var(--sys-blue); position: absolute; z-index: 5; border-radius: 10px; }
-        .top-bar { top: -3px; } .bottom-bar { bottom: -3px; }
+  .file-tab.active {
+    color: var(--hacker-green); background-color: rgba(0, 20, 0, 0.6);
+    border-top: 2px solid var(--hacker-green); text-shadow: 0 0 10px var(--hacker-green);
+  }
 
-        .window-body, .sys-box { 
-            background: rgba(3, 8, 18, 0.92); border: 2px solid rgba(0, 213, 255, 0.6); backdrop-filter: blur(12px); 
-            padding: 30px 20px 15px 20px; box-shadow: inset 0 0 50px rgba(0, 162, 255, 0.2); position: relative; z-index: 2; 
-            background-image: linear-gradient(rgba(0, 162, 255, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 162, 255, 0.07) 1px, transparent 1px); background-size: 30px 30px;
-            display: flex; flex-direction: column; text-align: center; border-radius: 15px; 
-        }
-        .sys-box { max-width: 450px; width: 100%; background: rgba(4, 10, 20, 0.96); animation: animeOpen 0.4s ease forwards; }
+  main { flex: 1; position: relative; display: flex; flex-direction: column; }
 
-        .header-group { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 25px; width: 100%; flex-wrap: wrap; }
-        .icon-box { border: 2px solid rgba(0, 213, 255, 0.6); padding: 8px; background: rgba(0, 162, 255, 0.08); border-radius: 12px; }
-        .icon-circle { width: 35px; height: 35px; border: 2px solid #ffffff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 1.2rem; text-shadow: 0 0 5px var(--sys-cyan); }
-        .title-box { border: 2px solid rgba(0, 213, 255, 0.6); padding: 8px 20px; background: rgba(0, 162, 255, 0.08); min-height: 48px; display:flex; align-items:center; border-radius: 12px; }
-        .title-box h1, .modal-title { color: #ffffff; font-size: 1.5rem; font-weight: 800; letter-spacing: 1px; text-shadow: 0 0 12px var(--sys-cyan); margin:0; }
+  #editor { width: 100%; height: 100%; direction: ltr !important; text-align: left; background: transparent !important; }
+  #editor.hidden { display: none; }
 
-        .quest-timer { color: var(--sys-red); font-size: 2rem; font-weight: 800; margin-bottom: 15px; text-align:center; letter-spacing: 2px; text-shadow: 0 0 15px var(--sys-red); }
-        .quest-info { text-align: center; margin-bottom: 25px; width: 100%; min-height: 80px;}
-        .quest-label { color: #ffffff; font-size: 1.1rem; margin-bottom: 10px; font-weight: 600; text-shadow: 0 0 8px var(--sys-cyan); }
-        .quest-title { color: var(--sys-cyan); font-size: 1.5rem; font-weight: 800; text-shadow: 0 0 12px rgba(0, 213, 255, 0.7); line-height: 1.5; }
+  .ace-terminal { background: transparent !important; }
+  .ace_gutter { background: rgba(0, 10, 0, 0.8) !important; color: var(--text-muted) !important; }
+  .ace_cursor { color: var(--hacker-green) !important; background-color: var(--hacker-green) !important; opacity: 0.8 !important; }
 
-        .sup-task-item {
-            display: flex; align-items: center; justify-content: space-between; background: rgba(0, 162, 255, 0.08);
-            border: 2px solid rgba(0, 213, 255, 0.3); padding: 10px; gap: 10px; text-align: right; border-radius: 8px; margin-bottom: 8px; font-size: 1rem; font-weight:600;
-        }
-        
-        textarea.mission-code-display {
-            font-size: 1.2rem; letter-spacing: 2px; font-weight: 800; color: var(--sys-gold);
-            text-shadow: 0 0 10px var(--sys-gold); text-align: left; margin: 15px 0; background: rgba(0,0,0,0.5); padding: 10px;
-            border: 2px solid var(--sys-gold); width: 100%; height: 110px; resize: none; direction: ltr; outline: none; border-radius: 8px;
-        }
-        
-        .task-builder-box {
-            background: rgba(0, 162, 255, 0.03); border: 2px dashed var(--sys-cyan); padding: 12px; margin-bottom: 10px; text-align: right; border-radius: 8px; position: relative;
-        }
+  #output-container { width: 100%; height: 100%; background-color: #000; display: none; }
+  #output-container.active { display: block; }
+  iframe { width: 100%; height: 100%; border: none; background: #fff; }
 
-        .penalty-setup-box {
-            background: rgba(255, 0, 60, 0.05); border: 2px solid var(--sys-red); padding: 15px; margin-bottom: 20px; text-align: right; border-radius: 8px; box-shadow: inset 0 0 20px rgba(255, 0, 60, 0.1);
-        }
-    </style>
+  #inject-modal {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: rgba(0, 15, 0, 0.95); border: 1px solid var(--hacker-green);
+    box-shadow: 0 0 30px var(--hacker-glow); padding: 20px; z-index: 10000;
+    display: flex; flex-direction: column; gap: 15px; width: 80%; max-width: 600px;
+  }
+
+  #inject-modal.hidden { display: none; }
+  #inject-modal label { font-size: 13px; color: var(--hacker-green); text-shadow: 0 0 5px var(--hacker-green); }
+
+  #inject-textarea {
+    width: 100%; height: 150px; background: #000; color: var(--hacker-green);
+    border: 1px solid var(--text-muted); font-family: 'Consolas', monospace;
+    padding: 10px; resize: none; font-size: 14px; direction: ltr; text-align: left;
+  }
+
+  #inject-textarea:focus { outline: none; border-color: var(--hacker-green); box-shadow: 0 0 10px var(--hacker-glow) inset; }
+
+  .modal-buttons { display: flex; justify-content: space-between; align-items: center; }
+  .modal-cancel { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 5px 15px; cursor: pointer; }
+</style>
 </head>
-<body onclick="initAudioContext()">
+<body>
 
-    <!-- شاشة التحميل الأسطورية -->
-    <div id="bootScreen">
-        <div class="boot-title" id="bootTitleText">SYSTEM AWAKENING</div>
-        <div class="boot-signature" id="bootSigText">من تطوير karzmasrhan</div>
-        <button class="continue-btn" id="continueBtn" onclick="dismissBootScreen()">متابعة</button>
+  <div class="crt-overlay"></div>
+  <canvas id="matrix-canvas"></canvas>
+
+  <div id="inject-modal" class="hidden">
+    <label>>_ ألصق الكود هنا:</label>
+    <textarea id="inject-textarea" placeholder="..."></textarea>
+    <div class="modal-buttons">
+      <button class="modal-cancel" onclick="closeInjectBox()">CANCEL</button>
+      <button class="main-btn" onclick="startHackerTyping()">START_HACK()</button>
+    </div>
+  </div>
+
+  <div class="ui-layer">
+    <div class="top-navbar">
+      <div class="main-tabs">
+        <button class="main-btn" id="btn-run" onclick="runCode()">RUN</button>
+        <button class="main-btn active" id="btn-code" onclick="switchMainTab('code')">CODE</button>
+        <button class="stealth-btn" onclick="openInjectBox()">☠️</button>
+      </div>
     </div>
 
-    <!-- التنبيهات -->
-    <div class="modal-overlay" id="customAlertModal" style="z-index: 3000;">
-        <div class="sys-box" id="alertBox" style="border-color: var(--sys-cyan); max-width: 350px;">
-            <div class="modal-title" id="alertTitle" style="color:var(--sys-cyan); text-shadow:0 0 10px var(--sys-cyan); margin-bottom: 10px;">رسالة نظام</div>
-            <p id="alertMessage" style="font-size:1.1rem; color:#fff; margin: 10px 0 20px 0; line-height: 1.5;"></p>
-            <button class="gen-quest-btn text-btn" id="alertOkBtn" style="width:100%; padding:12px;" onclick="event.preventDefault(); playSound('click'); closeCustomAlert()">[ حسنـاً ]</button>
-        </div>
+    <div class="file-tabs-container" id="file-tabs">
+      <button class="file-tab active" id="tab-html" onclick="switchFile('html')">HTML</button>
+      <button class="file-tab" id="tab-css" onclick="switchFile('css')">CSS</button>
+      <button class="file-tab" id="tab-js" onclick="switchFile('js')">JS</button>
     </div>
 
-    <!-- الخروج من النظام -->
-    <div class="modal-overlay" id="exitModal" style="z-index: 2500;">
-        <div class="sys-box" style="border-color: var(--sys-purple);">
-            <div class="modal-title" style="color:var(--sys-purple); text-shadow:0 0 10px var(--sys-purple);">طلب إنهاء النظام</div>
-            <p style="font-size:1rem; color:#aaa; margin: 15px 0 10px 0;">لا يمكنك الخروج إلا بإدخال كود الإنهاء السري الخاص بالمشرف:</p>
-            <input type="text" id="exitCodeInput" class="sys-input" style="border-color:var(--sys-purple); color:var(--sys-purple); font-size:1.5rem; letter-spacing:5px; text-align:center;" placeholder="****" onkeydown="if(event.key === 'Enter') { event.preventDefault(); verifyExitCode(); }">
-            <button class="gen-quest-btn supervisor-btn" style="width:100%; padding:15px; font-size: 1.2rem;" onclick="event.preventDefault(); playSound('click'); verifyExitCode()">[ تأكيد الخروج ]</button>
-            <button class="gen-quest-btn penalty-btn" style="width:100%; padding:10px; margin-top:5px; font-size:1rem;" onclick="event.preventDefault(); playSound('back'); closeExitModal()">إلغاء والعودة للعبة</button>
-        </div>
-    </div>
+    <main>
+      <div id="editor"></div>
+      <div id="output-container">
+        <iframe id="output-frame"></iframe>
+      </div>
+    </main>
+  </div>
 
-    <!-- اختيار الدور -->
-    <div class="start-overlay" id="loginOverlay">
-        <div class="system-wrapper active">
-            <div class="outer-frame"></div><div class="frame-bar top-bar"></div>
-            <div class="window-body">
-                <div class="header-group">
-                    <div class="icon-box"><div class="icon-circle">⚡</div></div>
-                    <div class="title-box"><h1>System Awakening</h1></div>
-                </div>
-                <p style="font-size: 1.1rem; color: #aaa; margin-bottom: 25px;">نظام مهام لا مركزي (مغلق):</p>
-                
-                <div style="display:flex; flex-direction:column; gap:12px; width:100%; align-items:center;">
-                    <button class="gen-quest-btn supervisor-btn" style="width:100%; font-size:1.3rem; padding:15px;" onclick="event.preventDefault(); playSound('open'); selectRole('supervisor')">[ مشرف النظام (إنشاء مهام) ]</button>
-                    <button class="gen-quest-btn text-btn" style="width:100%; font-size:1.3rem; padding:15px;" onclick="event.preventDefault(); playSound('open'); selectRole('player')">[ لاعب (دخول النظام) ]</button>
-                </div>
-                <div class="developer-signature">من تطوير karzmasrhan</div>
-            </div>
-            <div class="frame-bar bottom-bar"></div>
-        </div>
-    </div>
+  <script>
+    // إعدادات الخلفية
+    const canvas = document.getElementById('matrix-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%""\'#&_(),.;:?!\\|{}<>[]^~'.split('');
+    const fontSize = 14; const columns = canvas.width / fontSize;
+    const drops = Array(Math.floor(columns)).fill(1);
 
-    <!-- ولوج اللاعب -->
-    <div class="start-overlay" id="playerLoginModal">
-        <div class="sys-box" style="border-color: var(--sys-cyan);">
-            <button class="window-close-x-btn" onclick="event.preventDefault(); playSound('back'); allowExit=true; location.reload()">✕</button>
-            <div class="modal-title">ولوج اللاعب للنظام</div>
-            <p style="font-size:1rem; color:#aaa; margin: 15px 0 10px 0;">أدخل الكود الرقمي المستلم من المشرف:</p>
-            <textarea id="missionCodeInput" class="sys-input" placeholder="ألصق كود الأرقام هنا..." style="font-size:1.1rem; height:100px; text-align:left; direction:ltr; resize:none;"></textarea>
-            <button class="gen-quest-btn text-btn" style="width:100%; padding:15px; font-size: 1.2rem;" onclick="event.preventDefault(); playSound('success'); playerStartMission()">[ فك التشفير وبدء المهمة ]</button>
-        </div>
-    </div>
-
-    <!-- مصادقة المهمة -->
-    <div class="modal-overlay" id="approvalModal">
-        <div class="sys-box" style="border-color: var(--sys-gold);">
-            <div class="modal-title" style="color:var(--sys-gold); text-shadow:0 0 10px var(--sys-gold);">مصادقة المشرف مطلوبة</div>
-            <p style="font-size:1rem; color:#aaa; margin: 15px 0 10px 0;">اطلب من المشرف كود الموافقة السري (4 أرقام):</p>
-            <input type="text" id="approvalCodeInput" class="sys-input" style="border-color:var(--sys-gold); color:var(--sys-gold); font-size:1.5rem; letter-spacing:5px; text-align:center;" placeholder="****" onkeydown="if(event.key === 'Enter') { event.preventDefault(); verifyApprovalCode(); }">
-            <button class="gen-quest-btn gold-btn" style="width:100%; padding:15px; font-size: 1.2rem;" onclick="event.preventDefault(); playSound('click'); verifyApprovalCode()">[ تأكيد الموافقة ]</button>
-            <button class="gen-quest-btn penalty-btn" style="width:100%; padding:10px; margin-top:5px; font-size:1rem;" onclick="event.preventDefault(); playSound('back'); cancelApproval()">إلغاء والعودة للمهمة</button>
-        </div>
-    </div>
-
-    <!-- رأس النظام -->
-    <div class="system-header" id="sysHeader">
-        <div class="rank-badge" id="rankDisplay">SYSTEM MODE</div>
-        <div class="system-action-bar">
-            <button class="gen-quest-btn supervisor-btn" onclick="event.preventDefault(); playSound('error'); attemptExit()">[ خروج / إنهاء النظام ]</button>
-        </div>
-    </div>
-
-    <!-- واجهة اللاعب -->
-    <div class="system-container" id="playerDashboard" style="display:none;">
-        <div class="system-wrapper active">
-            <div class="outer-frame"></div><div class="frame-bar top-bar"></div>
-            <div class="window-body">
-                <div id="questActiveView" style="display:flex; flex-direction: column; align-items: center;">
-                    <div class="header-group">
-                        <div class="icon-box"><div class="icon-circle" id="playerIcon">!</div></div>
-                        <div class="title-box"><h1 id="playerQuestHeader">المهمة الحالية</h1></div>
-                    </div>
-                    <div class="quest-timer" id="playerTimer">00:00</div>
-                    <div class="quest-info">
-                        <div class="quest-label" id="playerQuestLabel">[مهمة جديدة]</div>
-                        <div class="quest-title" id="playerQuestTitle">جاري انتظار بدء المهمة...</div>
-                    </div>
-                    <button class="gen-quest-btn text-btn" id="finishQuestBtn" style="width:90%; padding: 15px; font-size: 1.2rem;" onclick="event.preventDefault(); playSound('success'); requestTaskApproval()">[ إنهاء المهمة وطلب الموافقة ✔️ ]</button>
-                </div>
-                
-                <div id="questFinishedView" style="display:none; flex-direction: column; align-items: center; padding: 20px 0;">
-                    <h2 style="color:var(--sys-gold); font-size: 2rem; margin-bottom:15px; text-shadow: 0 0 10px var(--sys-gold);">🎉 تمت المصادقة!</h2>
-                    <p style="color:#aaa; font-size:1.1rem;">تم إنجاز جميع المهام. اطلب كود الخروج من المشرف لإنهاء النظام.</p>
-                </div>
-                <div class="developer-signature">من تطوير karzmasrhan</div>
-            </div>
-            <div class="frame-bar bottom-bar"></div>
-        </div>
-    </div>
-
-    <!-- واجهة المشرف -->
-    <div class="system-container" id="supervisorDashboard" style="display:none;">
-        <div class="system-wrapper active" style="width: 100%; max-width: 650px;">
-            <div class="outer-frame"></div><div class="frame-bar top-bar"></div>
-            <div class="window-body">
-                <div class="header-group">
-                    <div class="icon-box"><div class="icon-circle" style="color:var(--sys-purple); border-color:var(--sys-purple)">👁️</div></div>
-                    <div class="title-box" style="border-color:var(--sys-purple)"><h1 style="color:var(--sys-purple);">نظام المشرف: قائمة المهام</h1></div>
-                </div>
-
-                <div id="supSetupPhase">
-                    <div class="penalty-setup-box">
-                        <div style="color:var(--sys-red); font-weight:800; font-size: 1.1rem; margin-bottom:10px;">🚨 إعداد مهمة العقاب (عند الخطأ 3 مرات):</div>
-                        <input type="text" id="supGlobalPenaltyText" class="sys-input" value="" style="border-color:var(--sys-red); color:var(--sys-red); margin-bottom:8px;" placeholder="أدخل وصف العقاب هنا..." onkeydown="if(event.key === 'Enter') event.preventDefault();">
-                        <div style="display:flex; gap:10px; align-items:center;">
-                            <label style="color:#aaa; font-size:1rem;">المدة (ثواني):</label>
-                            <input type="number" id="supGlobalPenaltyDur" class="sys-input" value="30" style="border-color:var(--sys-red); color:var(--sys-red); margin-bottom:0; width:100px; text-align:center;" onkeydown="if(event.key === 'Enter') event.preventDefault();">
-                        </div>
-                    </div>
-
-                    <div style="font-size:1.1rem; color:var(--sys-cyan); font-weight: 800; text-align:right; margin-bottom:10px;">المهام الأساسية للاعب:</div>
-                    
-                    <div id="tasksListContainer" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px; padding-left: 5px;">
-                    </div>
-
-                    <button class="gen-quest-btn" style="width:100%; padding:12px; margin-bottom:15px; border-color:var(--sys-cyan);" onclick="event.preventDefault(); playSound('click'); addNewTaskRow()">
-                        ➕ [ إضافة مهمة جديدة للقائمة ]
-                    </button>
-
-                    <button class="gen-quest-btn text-btn" style="width:100%; padding:15px; font-size:1.3rem;" onclick="event.preventDefault(); playSound('success'); supGenerateMission()">
-                        🚀 [ إصدار الكود الشامل وتشفيره ]
-                    </button>
-                </div>
-
-                <div id="supActivePhase" style="display:none; flex-direction:column; text-align:right;">
-                    <div style="color:var(--sys-gold); font-weight:800; font-size:1rem; text-align:center;">انسخ الكود الرقمي بالكامل وأرسله للاعب:</div>
-                    <textarea class="mission-code-display" id="supGeneratedCode" readonly></textarea>
-                    <button class="gen-quest-btn text-btn" style="width:100%; padding:15px; margin-bottom:15px; font-size:1.2rem;" onclick="event.preventDefault(); playSound('click'); copyCode()">[ نسخ الكود 📋 ]</button>
-
-                    <div style="background:rgba(183, 0, 255, 0.1); border:2px solid var(--sys-purple); padding:10px; margin-bottom:15px; border-radius:8px; text-align:center;">
-                        <div style="color:var(--sys-purple); font-weight:800; font-size: 1.1rem; margin-bottom:10px;">🔒 كود الخروج من النظام (للاعب):</div>
-                        <span style="background:rgba(183, 0, 255, 0.2); border:2px solid var(--sys-purple); color:var(--sys-purple); padding:5px 25px; font-weight:800; font-size:1.8rem; letter-spacing:5px; border-radius:8px;" id="supExitCodeDisplay"></span>
-                    </div>
-
-                    <div id="supPenaltyDisplay" style="background:rgba(255,0,60,0.1); border:2px solid var(--sys-red); padding:10px; margin-bottom:15px; border-radius:8px;">
-                    </div>
-
-                    <div style="color:var(--sys-cyan); font-weight:800; font-size: 1.1rem; margin-bottom:8px;">أكواد الموافقة للمهام الأساسية:</div>
-                    <div id="supApprovalList" style="max-height: 200px; overflow-y: auto;"></div>
-                    
-                    <button class="gen-quest-btn penalty-btn" style="width:100%; padding:12px; margin-top:15px;" onclick="event.preventDefault(); playSound('error'); allowExit=true; location.reload()">[ إلغاء وبدء تحدي جديد ]</button>
-                </div>
-
-                <div class="developer-signature">من تطوير karzmasrhan</div>
-            </div>
-            <div class="frame-bar bottom-bar"></div>
-        </div>
-    </div>
-
-    <script>
-        let audioCtx = null;
-
-        function initAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+    setInterval(() => {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
+        for(let i = 0; i < drops.length; i++) {
+            ctx.fillText(letters[Math.floor(Math.random() * letters.length)], i * fontSize, drops[i] * fontSize);
+            if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+            drops[i]++;
         }
+    }, 35);
+    window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
-        window.onload = function() {
-            document.getElementById('bootTitleText').classList.add('typing-anim');
-            document.getElementById('bootSigText').classList.add('sig-anim');
-            document.getElementById('continueBtn').classList.add('btn-anim');
-        };
+    // إعدادات محرر الأكواد
+    const editor = ace.edit("editor");
+    editor.setTheme("ace/theme/terminal");
+    editor.setOptions({ 
+        fontSize: "16px", showLineNumbers: true, showGutter: true, 
+        wrap: true, fontFamily: "'Courier New', monospace",
+        cursorStyle: "wide", highlightActiveLine: false 
+    });
 
-        function playSound(type) {
-            try {
-                if (!audioCtx) initAudioContext();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
+    const sessions = {
+        html: ace.createEditSession("<!DOCTYPE html>\n<html>\n<head>\n  <title>System Breach</title>\n</head>\n<body>\n  <h1 id='title'>ACCESS GRANTED...</h1>\n</body>\n</html>", "ace/mode/html"),
+        css:  ace.createEditSession("body {\n  background-color: #050505;\n  color: #00ff41;\n}\n#title {\n  text-shadow: 0 0 10px #00ff41;\n}", "ace/mode/css"),
+        js:   ace.createEditSession("console.log('[+] CONNECTION ESTABLISHED');", "ace/mode/javascript")
+    };
+    editor.setSession(sessions.html);
 
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+    let isTyping = false;
+    let charsPerTick = 2; // المعدل الأساسي
+    let speedTimer;
 
-                const now = audioCtx.currentTime;
+    function openInjectBox() {
+        // إذا تم نسخ نص مسبقاً، سيحاول التركيز للصق مباشرة
+        document.getElementById('inject-modal').classList.remove('hidden');
+        const textarea = document.getElementById('inject-textarea');
+        textarea.focus();
+    }
 
-                if (type === 'click') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(800, now);
-                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                    osc.start(now);
-                    osc.stop(now + 0.05);
-                } else if (type === 'open') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.15);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
-                } else if (type === 'success') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(523.25, now); // C5
-                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
-                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                } else if (type === 'error') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.setValueAtTime(100, now + 0.1);
-                    gain.gain.setValueAtTime(0.3, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else if (type === 'back') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(500, now);
-                    osc.frequency.exponentialRampToValueAtTime(250, now + 0.1);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                }
-            } catch (e) {
-                // Ignore audio restriction errors
-            }
-        }
+    function closeInjectBox() {
+        document.getElementById('inject-modal').classList.add('hidden');
+    }
 
-        function dismissBootScreen() {
-            playSound('open');
-            const boot = document.getElementById('bootScreen');
-            boot.classList.add('fade-out');
-            setTimeout(() => {
-                boot.style.display = 'none';
-                document.getElementById('loginOverlay').classList.add('active'); 
-            }, 800);
-        }
+    // نظام الكتابة مع مضاعفة السرعة كل 3 ثواني
+    function startHackerTyping() {
+        if (isTyping) return;
+        const textarea = document.getElementById('inject-textarea');
+        const userText = textarea.value;
+        if (!userText) return;
 
-        let playerActiveTasks = [];
-        let currentTaskIndex = 0;
-        let playerTimerInterval = null;
-        let playerGlobalPenalty = null; 
-        let failedAttemptsCounter = 0;
-        let systemExitCode = "";
-        let exitFailedAttempts = 0;
-        let isExitLocked = false;
-        let allowExit = false;
+        closeInjectBox();
+        textarea.value = '';
+        if (document.getElementById('output-container').classList.contains('active')) { switchMainTab('code'); }
 
-        window.addEventListener('beforeunload', function (e) {
-            let roleTitle = document.getElementById('rankDisplay') ? document.getElementById('rankDisplay').innerText : "";
-            if (roleTitle.includes("PLAYER") && !allowExit && currentTaskIndex < playerActiveTasks.length) {
-                e.preventDefault();
-                e.returnValue = 'أنت محتجز في النظام! لا يمكنك المغادرة قبل إنهاء المهام وإدخال كود الخروج.';
-            }
-        });
+        isTyping = true;
+        editor.setReadOnly(true);
+        editor.setValue("");
+        let index = 0;
+        charsPerTick = 2; 
 
-        document.addEventListener('click', function(event) {
-            document.querySelectorAll('.sys-custom-select').forEach(function(select) {
-                if (!select.contains(event.target)) {
-                    select.querySelector('.sys-select-options').classList.remove('show');
-                }
-            });
-        });
+        // مضاعفة سرعة الكتابة كل 3 ثواني
+        speedTimer = setInterval(() => {
+            charsPerTick *= 2; 
+        }, 3000);
 
-        function setCustomTaskType(element, value, text) {
-            playSound('click');
-            const wrapper = element.closest('.sys-custom-select');
-            wrapper.querySelector('.sys-select-display').innerHTML = text;
-            wrapper.querySelector('.task-type-input').value = value;
-            wrapper.querySelector('.sys-select-options').classList.remove('show');
-        }
-
-        function showCustomAlert(message, type = "info") {
-            const modal = document.getElementById('customAlertModal');
-            const box = document.getElementById('alertBox');
-            const title = document.getElementById('alertTitle');
-            const msg = document.getElementById('alertMessage');
-            const btn = document.getElementById('alertOkBtn');
-
-            msg.innerHTML = message;
-
-            if (type === 'error') {
-                playSound('error');
-                box.style.borderColor = "var(--sys-red)"; title.style.color = "var(--sys-red)";
-                title.style.textShadow = "0 0 10px var(--sys-red)"; title.innerText = "🚨 خطأ في النظام";
-                btn.className = "gen-quest-btn penalty-btn";
-            } else if (type === 'success') {
-                playSound('success');
-                box.style.borderColor = "var(--sys-green)"; title.style.color = "var(--sys-green)";
-                title.style.textShadow = "0 0 10px var(--sys-green)"; title.innerText = "✅ اكتمل بنجاح";
-                btn.className = "gen-quest-btn text-btn";
-            } else if (type === 'warning') {
-                playSound('error');
-                box.style.borderColor = "var(--sys-gold)"; title.style.color = "var(--sys-gold)";
-                title.style.textShadow = "0 0 10px var(--sys-gold)"; title.innerText = "⚠️ تحذير";
-                btn.className = "gen-quest-btn gold-btn";
+        function typeChar() {
+            if (index < userText.length) {
+                editor.insert(userText.substr(index, charsPerTick));
+                index += charsPerTick;
+                editor.renderer.scrollCursorIntoView();
+                setTimeout(typeChar, 15);
             } else {
-                playSound('click');
-                box.style.borderColor = "var(--sys-cyan)"; title.style.color = "var(--sys-cyan)";
-                title.style.textShadow = "0 0 10px var(--sys-cyan)"; title.innerText = "رسالة نظام";
-                btn.className = "gen-quest-btn";
-            }
-            modal.classList.add('active');
-        }
-        function closeCustomAlert() { document.getElementById('customAlertModal').classList.remove('active'); }
-
-        function attemptExit() {
-            let roleTitle = document.getElementById('rankDisplay').innerText;
-            if (roleTitle.includes("PLAYER")) {
-                if (isExitLocked && currentTaskIndex < playerActiveTasks.length) {
-                    showCustomAlert("لقد استنفدت محاولات الخروج! يجب إنهاء المهام المتبقية.", "error"); return;
-                }
-                document.getElementById('exitCodeInput').value = "";
-                document.getElementById('exitModal').classList.add('active');
-            } else { allowExit = true; location.reload(); }
-        }
-        function closeExitModal() { document.getElementById('exitModal').classList.remove('active'); }
-
-        function verifyExitCode() {
-            let inputCode = document.getElementById('exitCodeInput').value.trim();
-            if (inputCode === systemExitCode) { 
-                playSound('success'); allowExit = true; location.reload(); 
-            } else {
-                exitFailedAttempts++;
-                if (exitFailedAttempts >= 3) {
-                    isExitLocked = true;
-                    showCustomAlert("كود الخروج خاطئ 3 مرات! تم إغلاق النظام، أكمل مهامك أولاً.", "error");
-                    document.getElementById('exitModal').classList.remove('active');
-                } else {
-                    let left = 3 - exitFailedAttempts;
-                    showCustomAlert(`كود خاطئ! متبقي (${left}) محاولات.`, "error");
-                }
+                isTyping = false;
+                editor.setReadOnly(false);
+                clearInterval(speedTimer);
             }
         }
+        typeChar();
+    }
 
-        function selectRole(role) {
-            document.getElementById('loginOverlay').classList.remove('active');
-            document.getElementById('sysHeader').classList.add('active');
-            if (role === 'supervisor') {
-                document.getElementById('supervisorDashboard').style.display = 'flex';
-                document.getElementById('rankDisplay').innerText = "SUPERVISOR MODE";
-                addNewTaskRow("", 60, "normal");
-            } else { document.getElementById('playerLoginModal').classList.add('active'); }
+    // التنقل والتشغيل
+    function switchFile(fileType) {
+        document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById(`tab-${fileType}`).classList.add('active');
+        editor.setSession(sessions[fileType]);
+    }
+
+    function switchMainTab(tab) {
+        if (tab === 'code') {
+            document.getElementById('btn-code').classList.add('active'); 
+            document.getElementById('btn-run').classList.remove('active');
+            document.getElementById('file-tabs').classList.remove('hidden'); 
+            document.getElementById('output-container').classList.remove('active');
+            document.getElementById('editor').style.display = 'block';
+        } else {
+            document.getElementById('btn-run').classList.add('active');
+            document.getElementById('btn-code').classList.remove('active'); 
+            document.getElementById('file-tabs').classList.add('hidden'); 
+            document.getElementById('editor').style.display = 'none';
+            document.getElementById('output-container').classList.add('active');
         }
+    }
 
-        function addNewTaskRow(defaultText = "", defaultDuration = 60, defaultType = "normal") {
-            const container = document.getElementById('tasksListContainer');
-            const index = container.children.length + 1;
-            const div = document.createElement('div'); div.className = 'task-builder-box';
-            let dText = defaultType === 'normal' ? 'عادية / تدريب' : '⚠️ مهمة عقاب';
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-                    <span style="color:var(--sys-cyan); font-weight:800; font-size:1.1rem;">مهمة #${index}</span>
-                    <button style="background:none; border:none; color:var(--sys-red); font-weight:bold; font-size:1.1rem;" onclick="playSound('back'); this.parentElement.parentElement.remove()">✕ حذف</button>
-                </div>
-                <input type="text" class="sys-input task-text-input" placeholder="اسم أو وصف المهمة..." value="${defaultText}">
-                <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                    <div style="flex:1; min-width:45%;">
-                        <label style="font-size:1rem; color:#aaa; font-weight:bold;">المدة (ثواني):</label>
-                        <input type="number" class="sys-input task-duration-input" value="${defaultDuration}" style="text-align:center;">
-                    </div>
-                    <div style="flex:1; min-width:45%;">
-                        <label style="font-size:1rem; color:#aaa; font-weight:bold;">النوع:</label>
-                        <div class="sys-custom-select" onclick="this.querySelector('.sys-select-options').classList.toggle('show'); playSound('click');">
-                            <div class="sys-select-display">${dText}</div>
-                            <div class="sys-select-options">
-                                <div class="sys-option-item" onclick="setCustomTaskType(this, 'normal', 'عادية / تدريب')">عادية / تدريب</div>
-                                <div class="sys-option-item" onclick="setCustomTaskType(this, 'penalty', '⚠️ عقاب')">⚠️ مهمة عقاب</div>
-                            </div>
-                            <input type="hidden" class="task-type-input" value="${defaultType}">
-                        </div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-        }
-
-        function supGenerateMission() {
-            const rows = document.querySelectorAll('.task-builder-box');
-            if (rows.length === 0) { showCustomAlert("أضف مهمة واحدة على الأقل!", "error"); return; }
-            let penRaw = document.getElementById('supGlobalPenaltyText').value.trim();
-            if (!penRaw) { showCustomAlert("أدخل وصف العقاب عند خطأ كلمة المرور!", "error"); return; }
-
-            let penText = penRaw.replace(/[~^|]/g, ''); let penDur = parseInt(document.getElementById('supGlobalPenaltyDur').value) || 30;
-            let penCode = Math.floor(1000 + Math.random() * 9000).toString();
-            let tasksData = []; let hasEmpty = false;
-
-            rows.forEach((row) => {
-                let rText = row.querySelector('.task-text-input').value.trim();
-                if (!rText) hasEmpty = true;
-                let text = rText.replace(/[~^|]/g, ''); 
-                let dur = parseInt(row.querySelector('.task-duration-input').value) || 60;
-                let type = row.querySelector('.task-type-input').value; 
-                let appCode = Math.floor(1000 + Math.random() * 9000).toString();
-                tasksData.push({ text, dur, type, appCode });
-            });
-
-            if (hasEmpty) { showCustomAlert("يوجد مهام بدون وصف!", "error"); return; }
-
-            systemExitCode = Math.floor(1000 + Math.random() * 9000).toString();
-            let pStr = `${penText}^${penDur}^${penCode}`;
-            let tStr = tasksData.map(t => `${t.text}^${t.dur}^${t.type==='penalty'?1:0}^${t.appCode}`).join('~');
-            let fullStr = `${pStr}|${tStr}|${systemExitCode}`;
-            let finalCode = "";
-            for(let i=0; i<fullStr.length; i++) finalCode += fullStr.charCodeAt(i).toString().padStart(5, '0');
-
-            document.getElementById('supSetupPhase').style.display = 'none';
-            document.getElementById('supActivePhase').style.display = 'flex';
-            document.getElementById('supGeneratedCode').value = finalCode;
-            document.getElementById('supExitCodeDisplay').innerText = systemExitCode;
-
-            document.getElementById('supPenaltyDisplay').innerHTML = `
-                <div style="color:var(--sys-red); font-weight:bold; font-size:1rem; margin-bottom:5px;">🚨 كود العقاب العام:</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="color:#fff; font-size:1rem; width:70%; text-align:right;">${penText}</span>
-                    <span style="background:rgba(255,0,60,0.2); border:1px solid var(--sys-red); color:var(--sys-red); padding:5px 10px; font-weight:800; font-size:1.2rem; border-radius:8px;">${penCode}</span>
-                </div>
-            `;
-
-            let h = '';
-            tasksData.forEach((t, i) => {
-                h += `
-                <div class="sup-task-item">
-                    <div style="color:#fff;">#${i+1} <span style="color:#aaa; font-size:0.9rem;">(${t.dur}ث)</span></div>
-                    <div style="background:rgba(255,234,0,0.1); border:1px solid var(--sys-gold); color:var(--sys-gold); padding:5px 15px; font-weight:800; font-size:1.2rem; border-radius:8px;">${t.appCode}</div>
-                </div>`;
-            });
-            document.getElementById('supApprovalList').innerHTML = h;
-        }
-
-        function copyCode() {
-            const input = document.getElementById('supGeneratedCode'); input.select(); input.setSelectionRange(0, 99999);
-            try {
-                if (document.execCommand('copy')) showCustomAlert("تم نسخ الكود بنجاح! أرسله للاعب للبدء.", "success");
-                else showCustomAlert("يرجى نسخ الكود يدوياً.", "warning");
-            } catch (e) { showCustomAlert("يرجى نسخ الكود يدوياً.", "warning"); }
-        }
-
-        function playerStartMission() {
-            let code = document.getElementById('missionCodeInput').value.trim();
-            if (!code || !/^\d+$/.test(code) || code.length % 5 !== 0) { showCustomAlert("الكود المدخل تالف أو غير صالح!", "error"); return; }
-            try {
-                let str = ""; for(let i=0; i<code.length; i+=5) str += String.fromCharCode(parseInt(code.substring(i, i+5), 10));
-                let m = str.split('|'); let p = m[0].split('^');
-                playerGlobalPenalty = { text: p[0], duration: parseInt(p[1]), type: 'penalty', approvalCode: p[2] };
-                playerActiveTasks = m[1].split('~').map(item => {
-                    let pt = item.split('^'); return { text: pt[0], duration: parseInt(pt[1]), type: pt[2]==='1'?'penalty':'normal', approvalCode: pt[3] };
-                });
-                systemExitCode = m[2]; currentTaskIndex = 0; failedAttemptsCounter = 0;
-                document.getElementById('playerLoginModal').classList.remove('active');
-                document.getElementById('playerDashboard').style.display = 'flex';
-                document.getElementById('rankDisplay').innerText = "PLAYER - ACTIVE";
-                loadPlayerCurrentTask();
-            } catch (e) { showCustomAlert("هيكل الكود غير مدعوم في هذا الإصدار!", "error"); }
-        }
-
-        function loadPlayerCurrentTask() {
-            if (currentTaskIndex >= playerActiveTasks.length) {
-                playSound('success'); document.getElementById('questActiveView').style.display = 'none';
-                document.getElementById('questFinishedView').style.display = 'flex';
-                isExitLocked = false; exitFailedAttempts = 0; if (playerTimerInterval) clearInterval(playerTimerInterval);
-                return;
-            }
-            const task = playerActiveTasks[currentTaskIndex];
-            const pIcon = document.getElementById('playerIcon');
-            const pHeader = document.getElementById('playerQuestHeader');
-            
-            if (task.type === 'penalty') {
-                playSound('error'); 
-                pHeader.innerText = `مهمة عقاب!`;
-                pHeader.style.color = "var(--sys-red)";
-                pHeader.style.textShadow = "0 0 10px var(--sys-red)";
-                pIcon.innerText = "☠️";
-                pIcon.parentElement.style.borderColor = "var(--sys-red)";
-                pHeader.parentElement.style.borderColor = "var(--sys-red)";
-                
-                document.getElementById('finishQuestBtn').className = "gen-quest-btn penalty-btn";
-            } else {
-                playSound('open'); 
-                pHeader.innerText = `المهمة (${currentTaskIndex + 1}/${playerActiveTasks.length})`;
-                pHeader.style.color = "#fff";
-                pHeader.style.textShadow = "0 0 12px var(--sys-cyan)";
-                pIcon.innerText = "!";
-                pIcon.parentElement.style.borderColor = "rgba(0, 213, 255, 0.6)";
-                pHeader.parentElement.style.borderColor = "rgba(0, 213, 255, 0.6)";
-                
-                document.getElementById('finishQuestBtn').className = "gen-quest-btn text-btn";
-            }
-            document.getElementById('playerQuestTitle').innerText = task.text; startPlayerTimer(task.duration);
-        }
-
-        function startPlayerTimer(secs) {
-            if (playerTimerInterval) clearInterval(playerTimerInterval);
-            let left = secs; const el = document.getElementById('playerTimer');
-            updateTimerDisplay(left, el);
-            playerTimerInterval = setInterval(() => {
-                if (left > 0) left--; updateTimerDisplay(left, el);
-                if(left <= 10) el.style.color = "var(--sys-red)"; else el.style.color = "var(--sys-red)";
-            }, 1000);
-        }
-
-        function updateTimerDisplay(secs, el) { el.innerText = `${Math.floor(secs/60).toString().padStart(2,'0')}:${(secs%60).toString().padStart(2,'0')}`; }
-
-        function requestTaskApproval() { document.getElementById('approvalCodeInput').value = ""; document.getElementById('approvalModal').classList.add('active'); setTimeout(()=>document.getElementById('approvalCodeInput').focus(),100); }
-        function cancelApproval() { document.getElementById('approvalModal').classList.remove('active'); }
-
-        function verifyApprovalCode() {
-            let val = document.getElementById('approvalCodeInput').value.trim(); if(!val) return;
-            if (val === playerActiveTasks[currentTaskIndex].approvalCode) {
-                playSound('success'); failedAttemptsCounter = 0; document.getElementById('approvalModal').classList.remove('active');
-                if (playerTimerInterval) clearInterval(playerTimerInterval);
-                currentTaskIndex++; loadPlayerCurrentTask();
-            } else {
-                failedAttemptsCounter++;
-                if(failedAttemptsCounter >= 3) {
-                    showCustomAlert("خطأ 3 مرات! تفعيل العقاب فوراً.", "error"); document.getElementById('approvalModal').classList.remove('active');
-                    failedAttemptsCounter = 0; playerActiveTasks.splice(currentTaskIndex, 0, JSON.parse(JSON.stringify(playerGlobalPenalty)));
-                    if (playerTimerInterval) clearInterval(playerTimerInterval); loadPlayerCurrentTask();
-                } else {
-                    playSound('error'); document.getElementById('approvalCodeInput').value = "";
-                    showCustomAlert(`كود خاطئ! متبقي (${3 - failedAttemptsCounter}) محاولات قبل العقاب.`, "warning");
-                }
-            }
-        }
-    </script>
+    function runCode() {
+        const frame = document.getElementById('output-frame');
+        const doc = frame.contentDocument || frame.contentWindow.document;
+        doc.open(); 
+        doc.write(`${sessions.html.getValue()}<style>${sessions.css.getValue()}</style><script>${sessions.js.getValue()}<\/script>`); 
+        doc.close();
+        switchMainTab('output');
+    }
+  </script>
 </body>
-                              </html>
+</html>

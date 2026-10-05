@@ -1,283 +1,651 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HACKER_IDE // TERMINAL_MODE</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لعبة الرعب - غابة المجهول</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
+        
+        #startScreen, #gameOverScreen, #transitionScreen, #winScreen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; color: #fff; text-align: center; padding: 20px;
+        }
+        #startScreen { background: radial-gradient(circle, rgba(15,20,30,0.95) 0%, rgba(0,0,0,0.98) 100%); }
+        #gameOverScreen { display: none; background: radial-gradient(circle, rgba(80,0,0,0.95) 0%, rgba(5,0,0,0.98) 100%); z-index: 200; }
+        #transitionScreen { display: none; background: rgba(0,0,0,0.92); z-index: 150; }
+        #winScreen { display: none; background: radial-gradient(circle, rgba(0,40,0,0.95) 0%, rgba(0,5,0,0.98) 100%); z-index: 200; }
+        
+        h1 { font-size: 40px; margin-bottom: 12px; color: #ff1111; text-shadow: 0 0 15px #ff0000; letter-spacing: 2px; }
+        #startScreen h1 { color: #88aaff; text-shadow: 0 0 20px #4466ff; }
+        #winScreen h1 { color: #33ff33; text-shadow: 0 0 20px #00ff00; }
+        #transitionScreen h1 { color: #ffaa00; text-shadow: 0 0 15px #ffaa00; }
+        p { font-size: 18px; color: #ddd; margin-bottom: 30px; line-height: 1.6; max-width: 450px; }
+        
+        .btn {
+            padding: 16px 45px; font-size: 20px; color: #fff; background: linear-gradient(180deg, #b30000 0%, #660000 100%);
+            border: 1px solid #ff3333; border-radius: 30px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.4); transition: transform 0.1s, box-shadow 0.1s;
+        }
+        #startScreen .btn { background: linear-gradient(180deg, #224488 0%, #001133 100%); border-color: #4466ff; box-shadow: 0 0 20px rgba(68, 102, 255, 0.4); }
+        .btn:active { transform: scale(0.95); }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+        #hud {
+            position: absolute; top: 15px; left: 50%; transform: translateX(-50%);
+            display: none; flex-direction: column; gap: 10px; width: 90%; max-width: 400px;
+            background: rgba(0, 0, 0, 0.7); border: 1px solid #555; border-radius: 15px; padding: 10px 20px;
+            z-index: 50; color: #fff; font-size: 16px; font-weight: bold; text-shadow: 0 0 5px #000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .hud-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .hud-value { color: #ff3333; font-size: 20px; margin-right: 5px; }
+        .bar-container { width: 60%; height: 12px; background: rgba(255,255,255,0.2); border-radius: 6px; overflow: hidden; border: 1px solid #222; }
+        #staminaBar { width: 100%; height: 100%; background: #33ff33; transition: width 0.1s linear; }
+        #batteryBar { width: 100%; height: 100%; background: #ffcc00; transition: width 0.1s linear; }
 
-<style>
-  :root {
-    --hacker-green: #00ff41;
-    --hacker-dark: #001100;
-    --hacker-glow: rgba(0, 255, 65, 0.6);
-    --text-muted: #008f11;
-  }
+        #vignette {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            box-shadow: inset 0 0 150px rgba(0,0,0,0.98); pointer-events: none; z-index: 5; display: none;
+        }
+        
+        #bloodOverlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 0, 0, 0.7); mix-blend-mode: multiply;
+            opacity: 0; pointer-events: none; z-index: 60; transition: opacity 0.1s;
+        }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background-color: #000;
-    color: var(--hacker-green);
-    font-family: 'Consolas', 'Courier New', monospace;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .crt-overlay {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-    background-size: 100% 4px;
-    z-index: 9999; pointer-events: none;
-  }
-
-  #matrix-canvas {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
-  }
-
-  .ui-layer {
-    position: relative; z-index: 10; display: flex; flex-direction: column; height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-  }
-
-  .top-navbar {
-    display: flex; align-items: center; justify-content: flex-start;
-    background-color: rgba(0, 15, 0, 0.9); padding: 10px 20px;
-    border-bottom: 1px solid var(--hacker-green); box-shadow: 0 0 15px var(--hacker-glow);
-  }
-
-  .main-tabs { display: flex; gap: 15px; align-items: center; }
-
-  .main-btn {
-    background: #000; color: var(--hacker-green); border: 1px solid var(--hacker-green);
-    padding: 8px 20px; font-size: 14px; font-weight: bold; font-family: monospace;
-    cursor: pointer; transition: 0.3s; text-shadow: 0 0 5px var(--hacker-green);
-    box-shadow: 0 0 8px var(--hacker-glow);
-  }
-
-  .main-btn.active, .main-btn:hover { 
-    background: var(--hacker-green); color: #000; box-shadow: 0 0 20px var(--hacker-glow);
-  }
-
-  .stealth-btn {
-    background: transparent; border: none; color: #333; font-size: 20px;
-    cursor: pointer; opacity: 0.1; transition: 0.5s; padding: 5px;
-  }
-  
-  .stealth-btn:hover { opacity: 0.8; text-shadow: 0 0 10px red; }
-
-  .file-tabs-container {
-    background-color: rgba(0, 5, 0, 0.8); display: flex; border-bottom: 1px solid var(--text-muted);
-  }
-  
-  .file-tabs-container.hidden { display: none; }
-
-  .file-tab {
-    background: transparent; color: var(--text-muted); border: none; padding: 12px 20px;
-    font-size: 14px; font-family: monospace; cursor: pointer; border-top: 2px solid transparent;
-  }
-
-  .file-tab.active {
-    color: var(--hacker-green); background-color: rgba(0, 20, 0, 0.6);
-    border-top: 2px solid var(--hacker-green); text-shadow: 0 0 10px var(--hacker-green);
-  }
-
-  main { flex: 1; position: relative; display: flex; flex-direction: column; }
-
-  #editor { width: 100%; height: 100%; direction: ltr !important; text-align: left; background: transparent !important; }
-  #editor.hidden { display: none; }
-
-  .ace-terminal { background: transparent !important; }
-  .ace_gutter { background: rgba(0, 10, 0, 0.8) !important; color: var(--text-muted) !important; }
-  .ace_cursor { color: var(--hacker-green) !important; background-color: var(--hacker-green) !important; opacity: 0.8 !important; }
-
-  #output-container { width: 100%; height: 100%; background-color: #000; display: none; }
-  #output-container.active { display: block; }
-  iframe { width: 100%; height: 100%; border: none; background: #fff; }
-
-  #inject-modal {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: rgba(0, 15, 0, 0.95); border: 1px solid var(--hacker-green);
-    box-shadow: 0 0 30px var(--hacker-glow); padding: 20px; z-index: 10000;
-    display: flex; flex-direction: column; gap: 15px; width: 80%; max-width: 600px;
-  }
-
-  #inject-modal.hidden { display: none; }
-  #inject-modal label { font-size: 13px; color: var(--hacker-green); text-shadow: 0 0 5px var(--hacker-green); }
-
-  #inject-textarea {
-    width: 100%; height: 150px; background: #000; color: var(--hacker-green);
-    border: 1px solid var(--text-muted); font-family: 'Consolas', monospace;
-    padding: 10px; resize: none; font-size: 14px; direction: ltr; text-align: left;
-  }
-
-  #inject-textarea:focus { outline: none; border-color: var(--hacker-green); box-shadow: 0 0 10px var(--hacker-glow) inset; }
-
-  .modal-buttons { display: flex; justify-content: space-between; align-items: center; }
-  .modal-cancel { background: transparent; border: 1px solid var(--text-muted); color: var(--text-muted); padding: 5px 15px; cursor: pointer; }
-</style>
+        #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; }
+        #joystickZone { position: absolute; bottom: 40px; left: 30px; width: 130px; height: 130px; background: rgba(255, 255, 255, 0.08); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25); pointer-events: auto; }
+        #joystickKnob { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(200,200,200,0.4) 100%); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        #lookZone { position: absolute; top: 0; right: 0; width: 55%; height: 100%; pointer-events: auto; }
+        #sprintBtnMobile { position: absolute; bottom: 40px; right: 30px; width: 80px; height: 80px; background: rgba(255, 50, 50, 0.3); border-radius: 50%; border: 2px solid rgba(255, 100, 100, 0.6); pointer-events: auto; display: flex; justify-content: center; align-items: center; color: white; font-weight: bold; font-size: 14px; box-shadow: 0 0 10px rgba(255,0,0,0.3); }
+        #sprintBtnMobile:active { background: rgba(255, 50, 50, 0.6); transform: scale(0.95); }
+    </style>
 </head>
 <body>
 
-  <div class="crt-overlay"></div>
-  <canvas id="matrix-canvas"></canvas>
+    <div id="vignette"></div>
+    <div id="bloodOverlay"></div>
 
-  <div id="inject-modal" class="hidden">
-    <label>>_ ألصق الكود هنا:</label>
-    <textarea id="inject-textarea" placeholder="..."></textarea>
-    <div class="modal-buttons">
-      <button class="modal-cancel" onclick="closeInjectBox()">CANCEL</button>
-      <button class="main-btn" onclick="startHackerTyping()">START_HACK()</button>
-    </div>
-  </div>
-
-  <div class="ui-layer">
-    <div class="top-navbar">
-      <div class="main-tabs">
-        <button class="main-btn" id="btn-run" onclick="runCode()">RUN</button>
-        <button class="main-btn active" id="btn-code" onclick="switchMainTab('code')">CODE</button>
-        <button class="stealth-btn" onclick="openInjectBox()">☠️</button>
-      </div>
+    <div id="hud">
+        <div class="hud-row">
+            <div>المرحلة: <span id="levelText" class="hud-value">1</span></div>
+            <div>الوقت: <span id="timerText" class="hud-value">01:00</span></div>
+        </div>
+        <div class="hud-row"><span>اللياقة:</span><div class="bar-container"><div id="staminaBar"></div></div></div>
+        <div class="hud-row"><span>البطارية:</span><div class="bar-container"><div id="batteryBar"></div></div></div>
     </div>
 
-    <div class="file-tabs-container" id="file-tabs">
-      <button class="file-tab active" id="tab-html" onclick="switchFile('html')">HTML</button>
-      <button class="file-tab" id="tab-css" onclick="switchFile('css')">CSS</button>
-      <button class="file-tab" id="tab-js" onclick="switchFile('js')">JS</button>
+    <div id="startScreen">
+        <h1>غابة المجهول</h1>
+        <p>تأكد من وضع صورة <b>25922.png</b> في نفس المجلد.<br>تجنب الأشجار، استمتع بضوء القمر، واجمع البطاريات لتبقى حياً...<br><br>هل أنت مستعد لمواجهته؟</p>
+        <button class="btn" onclick="startGame()">العب الآن</button>
     </div>
 
-    <main>
-      <div id="editor"></div>
-      <div id="output-container">
-        <iframe id="output-frame"></iframe>
-      </div>
-    </main>
-  </div>
+    <div id="transitionScreen">
+        <h1 id="transitionTitle">لقد نجوت!</h1>
+        <p id="transitionDesc">استعد... المرحلة القادمة ستبدأ والوحش أصبح أسرع.</p>
+    </div>
 
-  <script>
-    // إعدادات الخلفية
-    const canvas = document.getElementById('matrix-canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$+-*/=%""\'#&_(),.;:?!\\|{}<>[]^~'.split('');
-    const fontSize = 14; const columns = canvas.width / fontSize;
-    const drops = Array(Math.floor(columns)).fill(1);
+    <div id="winScreen">
+        <h1>أسطورة حقيقية!</h1>
+        <p>لقد صمدت طوال الـ 10 مراحل في الغابة المظلمة.</p>
+        <button class="btn" style="background: linear-gradient(180deg, #009900 0%, #004400 100%); border-color: #00ff00;" onclick="location.reload()">العب مرة أخرى</button>
+    </div>
 
-    setInterval(() => {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#0F0'; ctx.font = fontSize + 'px monospace';
-        for(let i = 0; i < drops.length; i++) {
-            ctx.fillText(letters[Math.floor(Math.random() * letters.length)], i * fontSize, drops[i] * fontSize);
-            if(drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
+    <div id="gameOverScreen">
+        <h1>لقد تم الإمساك بك!</h1>
+        <p>لم تتمكن من الهرب منه...</p>
+        <button class="btn" onclick="location.reload()">محاولة جديدة</button>
+    </div>
+
+    <div id="ui">
+        <div id="joystickZone"><div id="joystickKnob"></div></div>
+        <div id="lookZone"></div>
+        <div id="sprintBtnMobile">ارکض</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // المتغيرات العامة للصوت والألعاب
+        let audioCtx = null, windGainNode = null;
+        let currentLevel = 1, timeRemaining = 60;
+        const maxLevel = 10;
+        let isTransitioning = false, isGameWon = false, isGameStarted = false, isDying = false, isGameOver = false, dyingTimer = 0;
+        
+        // متغيرات Three.js
+        let scene, camera, renderer, monster, flashLight, flashTarget, lightningLight, moonLight;
+        let flashlightItem, groundItemLight;
+        let hasFlashlight = false;
+        
+        let moveForward = 0, moveRight = 0, keyForward = 0, keyRight = 0, rotationY = 0, rotationX = 0;
+        const treePositions = []; const batteriesList = [];
+        let isSprinting = false, stamina = 100, flashlightBattery = 100;
+        
+        const playerPos = new THREE.Vector3(0, 0, 0);
+        const currentVelocity = new THREE.Vector3();
+        const targetVelocity = new THREE.Vector3();
+        const defaultEyeHeight = 1.7;
+        let walkTimer = 0, lastStepTime = 0;
+        const clock = new THREE.Clock();
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        // ================= الصـــوتيـــــات =================
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+            
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = buffer; whiteNoise.loop = true;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass'; filter.frequency.value = 300; 
+
+            windGainNode = audioCtx.createGain(); windGainNode.gain.value = 0.2; 
+            whiteNoise.connect(filter); filter.connect(windGainNode); windGainNode.connect(audioCtx.destination);
+            whiteNoise.start();
         }
-    }, 35);
-    window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
 
-    // إعدادات محرر الأكواد
-    const editor = ace.edit("editor");
-    editor.setTheme("ace/theme/terminal");
-    editor.setOptions({ 
-        fontSize: "16px", showLineNumbers: true, showGutter: true, 
-        wrap: true, fontFamily: "'Courier New', monospace",
-        cursorStyle: "wide", highlightActiveLine: false 
-    });
+        function playFootstepSound(isSprinting = false) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(isSprinting ? 85 : 65 + Math.random() * 15, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + (isSprinting ? 0.08 : 0.12));
+            gain.gain.setValueAtTime(isSprinting ? 0.35 : 0.25, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (isSprinting ? 0.08 : 0.12));
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + (isSprinting ? 0.08 : 0.12));
+        }
 
-    const sessions = {
-        html: ace.createEditSession("<!DOCTYPE html>\n<html>\n<head>\n  <title>System Breach</title>\n</head>\n<body>\n  <h1 id='title'>ACCESS GRANTED...</h1>\n</body>\n</html>", "ace/mode/html"),
-        css:  ace.createEditSession("body {\n  background-color: #050505;\n  color: #00ff41;\n}\n#title {\n  text-shadow: 0 0 10px #00ff41;\n}", "ace/mode/css"),
-        js:   ace.createEditSession("console.log('[+] CONNECTION ESTABLISHED');", "ace/mode/javascript")
-    };
-    editor.setSession(sessions.html);
+        function playPickupSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        }
 
-    let isTyping = false;
-    let charsPerTick = 2; // المعدل الأساسي
-    let speedTimer;
+        function playThunderSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(20, audioCtx.currentTime + 1.5);
+            gain.gain.setValueAtTime(0.8, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+        }
 
-    function openInjectBox() {
-        // إذا تم نسخ نص مسبقاً، سيحاول التركيز للصق مباشرة
-        document.getElementById('inject-modal').classList.remove('hidden');
-        const textarea = document.getElementById('inject-textarea');
-        textarea.focus();
-    }
+        function playJumpscareSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.5);
+            osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 2.0);
+            gain.gain.setValueAtTime(1.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 2.0);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 2.0);
+        }
 
-    function closeInjectBox() {
-        document.getElementById('inject-modal').classList.add('hidden');
-    }
-
-    // نظام الكتابة مع مضاعفة السرعة كل 3 ثواني
-    function startHackerTyping() {
-        if (isTyping) return;
-        const textarea = document.getElementById('inject-textarea');
-        const userText = textarea.value;
-        if (!userText) return;
-
-        closeInjectBox();
-        textarea.value = '';
-        if (document.getElementById('output-container').classList.contains('active')) { switchMainTab('code'); }
-
-        isTyping = true;
-        editor.setReadOnly(true);
-        editor.setValue("");
-        let index = 0;
-        charsPerTick = 2; 
-
-        // مضاعفة سرعة الكتابة كل 3 ثواني
-        speedTimer = setInterval(() => {
-            charsPerTick *= 2; 
-        }, 3000);
-
-        function typeChar() {
-            if (index < userText.length) {
-                editor.insert(userText.substr(index, charsPerTick));
-                index += charsPerTick;
-                editor.renderer.scrollCursorIntoView();
-                setTimeout(typeChar, 15);
-            } else {
-                isTyping = false;
-                editor.setReadOnly(false);
-                clearInterval(speedTimer);
+        let lastHeartbeatTime = 0;
+        function updateHeartbeat(distance, time) {
+            if (!audioCtx || distance > 30) return;
+            let rate = Math.max(0.25, (distance / 30) * 1.2); 
+            if (time - lastHeartbeatTime > rate) {
+                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(45, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(15, audioCtx.currentTime + 0.3);
+                let vol = Math.max(0.1, 1.2 - (distance / 30));
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+                lastHeartbeatTime = time;
             }
         }
-        typeChar();
-    }
 
-    // التنقل والتشغيل
-    function switchFile(fileType) {
-        document.querySelectorAll('.file-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(`tab-${fileType}`).classList.add('active');
-        editor.setSession(sessions[fileType]);
-    }
-
-    function switchMainTab(tab) {
-        if (tab === 'code') {
-            document.getElementById('btn-code').classList.add('active'); 
-            document.getElementById('btn-run').classList.remove('active');
-            document.getElementById('file-tabs').classList.remove('hidden'); 
-            document.getElementById('output-container').classList.remove('active');
-            document.getElementById('editor').style.display = 'block';
-        } else {
-            document.getElementById('btn-run').classList.add('active');
-            document.getElementById('btn-code').classList.remove('active'); 
-            document.getElementById('file-tabs').classList.add('hidden'); 
-            document.getElementById('editor').style.display = 'none';
-            document.getElementById('output-container').classList.add('active');
+        // ================= رســوميات وإعـدادات الخامات =================
+        function createMoonTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#eef3ff'; // لون القمر الأساسي
+            ctx.fillRect(0, 0, 512, 512);
+            // رسم تضاريس وفوهات القمر العشوائية
+            for(let i = 0; i < 40; i++) {
+                const x = Math.random() * 512, y = Math.random() * 512, r = 10 + Math.random() * 40;
+                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(180, 190, 210, 0.5)'; ctx.fill();
+                ctx.beginPath(); ctx.arc(x - r*0.2, y - r*0.2, r*0.7, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(220, 230, 255, 0.4)'; ctx.fill();
+            }
+            return new THREE.CanvasTexture(canvas);
         }
-    }
 
-    function runCode() {
-        const frame = document.getElementById('output-frame');
-        const doc = frame.contentDocument || frame.contentWindow.document;
-        doc.open(); 
-        doc.write(`${sessions.html.getValue()}<style>${sessions.css.getValue()}</style><script>${sessions.js.getValue()}<\/script>`); 
-        doc.close();
-        switchMainTab('output');
-    }
-  </script>
+        function createGlowTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 256; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+            gradient.addColorStop(0.2, 'rgba(150, 180, 255, 0.6)');
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradient; ctx.fillRect(0, 0, 256, 256);
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        function generateGroundTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512; canvas.height = 512;
+            const context = canvas.getContext('2d');
+            context.fillStyle = '#061006'; 
+            context.fillRect(0, 0, 512, 512);
+            for (let i = 0; i < 6000; i++) {
+                context.fillStyle = Math.random() > 0.5 ? '#0c1a0c' : '#040b04';
+                context.fillRect(Math.random() * 512, Math.random() * 512, 4, 4);
+            }
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(100, 100);
+            return tex;
+        }
+
+        // ================= المحــــــرك =================
+        function initEngine() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x020508);
+            scene.fog = new THREE.FogExp2(0x020508, 0.045); // ضباب أزرق داكن وخفيف لرؤية القمر
+
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 150);
+            camera.position.set(0, defaultEyeHeight, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: false });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true; 
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.body.appendChild(renderer.domElement);
+
+            // الإضاءة المحيطية
+            scene.add(new THREE.AmbientLight(0x060c14, 0.4)); // ضوء محيطي يعكس لون الليل
+
+            // ================= إنشاء القمـــــر =================
+            const moonGroup = new THREE.Group();
+            moonGroup.position.set(80, 60, -100); 
+
+            // مجسم القمر
+            const moonMat = new THREE.MeshBasicMaterial({ map: createMoonTexture(), color: 0xffffff });
+            moonMat.fog = false; // لا يتأثر بالضباب ليكون ساطعاً!
+            const moon = new THREE.Mesh(new THREE.SphereGeometry(12, 32, 32), moonMat);
+            moonGroup.add(moon);
+
+            // توهج القمر (Glow)
+            const glowMat = new THREE.SpriteMaterial({ map: createGlowTexture(), color: 0xaaccff, transparent: true, blending: THREE.AdditiveBlending });
+            glowMat.fog = false;
+            const moonGlow = new THREE.Sprite(glowMat);
+            moonGlow.scale.set(60, 60, 1);
+            moonGroup.add(moonGlow);
+            scene.add(moonGroup);
+
+            // ضوء القمر الموجه (Moonlight) ينير العشب والأشجار
+            moonLight = new THREE.DirectionalLight(0x5577aa, 0.5);
+            moonLight.position.copy(moonGroup.position);
+            moonLight.castShadow = true;
+            moonLight.shadow.camera.left = -50; moonLight.shadow.camera.right = 50;
+            moonLight.shadow.camera.top = 50; moonLight.shadow.camera.bottom = -50;
+            scene.add(moonLight);
+
+            // ================= البرق والكشاف =================
+            lightningLight = new THREE.DirectionalLight(0xffffff, 0);
+            lightningLight.position.set(0, 50, 0);
+            scene.add(lightningLight);
+
+            flashLight = new THREE.SpotLight(0xfffae0, 0, 50, Math.PI / 4.5, 0.5, 1.2);
+            flashLight.position.set(0.3, -0.2, -0.1);
+            flashLight.castShadow = true; 
+            flashLight.shadow.bias = -0.001;
+            flashTarget = new THREE.Object3D(); flashTarget.position.set(0, -0.2, -10);
+            camera.add(flashTarget); flashLight.target = flashTarget; camera.add(flashLight);
+            scene.add(camera);
+
+            // ================= الأرض والعشب والبيئة =================
+            const groundMat = new THREE.MeshLambertMaterial({ map: generateGroundTexture() });
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), groundMat);
+            ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; 
+            scene.add(ground);
+
+            // ** نظام العشب الواقعي باستخدام InstancedMesh **
+            const grassGeo = new THREE.PlaneGeometry(0.3, 0.8);
+            grassGeo.translate(0, 0.4, 0); // رفع نقطة الارتكاز للأسفل
+            const grassMat = new THREE.MeshLambertMaterial({ color: 0x071b07, side: THREE.DoubleSide });
+            const grassCount = 60000; // 60 ألف عشبة
+            const grassMesh = new THREE.InstancedMesh(grassGeo, grassMat, grassCount);
+            grassMesh.receiveShadow = true; // نجعله يستقبل الظل ولا يصدره لتوفير الأداء
+            const dummy = new THREE.Object3D();
+            
+            for (let i = 0; i < grassCount; i++) {
+                dummy.position.set((Math.random() - 0.5) * 280, 0, (Math.random() - 0.5) * 280);
+                dummy.rotation.y = Math.random() * Math.PI;
+                // انحناء بسيط للعشب
+                dummy.rotation.x = (Math.random() - 0.5) * 0.2;
+                dummy.rotation.z = (Math.random() - 0.5) * 0.2;
+                dummy.scale.setScalar(0.5 + Math.random() * 0.8);
+                dummy.updateMatrix();
+                grassMesh.setMatrixAt(i, dummy.matrix);
+            }
+            scene.add(grassMesh);
+
+            // بناء الأشجار
+            const trunkGeo = new THREE.CylinderGeometry(0.4, 0.7, 5, 7);
+            const trunkMat = new THREE.MeshLambertMaterial({ color: 0x110a05 });
+            const leavesGeo = new THREE.ConeGeometry(3, 6, 7);
+            const leavesMat = new THREE.MeshLambertMaterial({ color: 0x051105 });
+
+            for (let i = 0; i < 200; i++) {
+                const tree = new THREE.Group();
+                const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+                trunk.position.y = 2.5; trunk.castShadow = true; trunk.receiveShadow = true;
+                tree.add(trunk);
+                
+                for(let j = 0; j < 3; j++){
+                    const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+                    leaves.position.y = 4.5 + (j * 2.5);
+                    const scale = 1 - (j * 0.2); leaves.scale.set(scale, scale, scale);
+                    leaves.castShadow = true; leaves.receiveShadow = true; tree.add(leaves);
+                }
+
+                const treeScale = 0.8 + Math.random() * 0.7;
+                tree.scale.set(treeScale, treeScale, treeScale);
+                tree.rotation.y = Math.random() * Math.PI;
+
+                const x = (Math.random() - 0.5) * 250; const z = (Math.random() - 0.5) * 250;
+                if (Math.abs(x) < 10 && Math.abs(z) < 10) continue; 
+
+                tree.position.set(x, 0, z); scene.add(tree);
+                treePositions.push(new THREE.Vector2(x, z));
+            }
+
+            // أدوات وموارد (البطاريات والكشاف)
+            flashlightItem = new THREE.Group();
+            const itemBody = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.5, 12), new THREE.MeshLambertMaterial({ color: 0x444444 }));
+            itemBody.rotation.z = Math.PI / 2; flashlightItem.add(itemBody);
+            const itemLens = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.12, 12), new THREE.MeshBasicMaterial({ color: 0xffffaa }));
+            itemLens.rotation.z = -Math.PI / 2; itemLens.position.x = 0.25; flashlightItem.add(itemLens);
+            flashlightItem.position.set(0, 0.08, -4.5); flashlightItem.rotation.y = Math.PI / 8;
+            scene.add(flashlightItem);
+
+            groundItemLight = new THREE.SpotLight(0xfff5cc, 10.0, 25, Math.PI / 3.5, 0.4, 1);
+            groundItemLight.position.set(0, 0.15, -4.5);
+            const itemLightTarget = new THREE.Object3D(); itemLightTarget.position.set(2, 0.15, -12);
+            scene.add(itemLightTarget); groundItemLight.target = itemLightTarget; scene.add(groundItemLight);
+
+            const batteryGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.25, 8);
+            const batteryMat = new THREE.MeshLambertMaterial({ color: 0x00ff00, emissive: 0x005500 });
+            for (let i = 0; i < 40; i++) {
+                const bat = new THREE.Mesh(batteryGeo, batteryMat);
+                bat.position.set((Math.random() - 0.5) * 200, 0.125, (Math.random() - 0.5) * 200);
+                scene.add(bat); batteriesList.push(bat);
+            }
+
+            // الوحش
+            const textureLoader = new THREE.TextureLoader();
+            const monsterTexture = textureLoader.load('25922.png');
+            const monsterMat = new THREE.SpriteMaterial({ map: monsterTexture, color: 0xffffff });
+            monster = new THREE.Sprite(monsterMat);
+            monster.scale.set(4.5, 4.5, 1); 
+            monster.position.set(0, 2.2, -35);
+            scene.add(monster);
+
+            setupControls();
+        }
+
+        // ================= التحكم والفيزياء =================
+        function startGame() {
+            initAudio();
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('vignette').style.display = 'block';
+            document.getElementById('hud').style.display = 'flex';
+            if (isMobile) document.getElementById('ui').style.display = 'block';
+            else document.body.requestPointerLock();
+            initEngine(); isGameStarted = true; clock.start(); animate();
+        }
+
+        document.body.addEventListener('click', () => {
+            if (isGameStarted && !isMobile && !isGameOver && !isDying && !isTransitioning) document.body.requestPointerLock();
+        });
+
+        function setupControls() {
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'w' || e.key === 'W') keyForward = 1;
+                if (e.key === 's' || e.key === 'S') keyForward = -1;
+                if (e.key === 'a' || e.key === 'A') keyRight = -1;
+                if (e.key === 'd' || e.key === 'D') keyRight = 1;
+                if (e.key === 'Shift') isSprinting = true;
+            });
+            window.addEventListener('keyup', (e) => {
+                if (['w','W','s','S'].includes(e.key)) keyForward = 0;
+                if (['a','A','d','D'].includes(e.key)) keyRight = 0;
+                if (e.key === 'Shift') isSprinting = false;
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (document.pointerLockElement === document.body && !isDying) {
+                    rotationY -= e.movementX * 0.002; rotationX -= e.movementY * 0.002;
+                    rotationX = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, rotationX));
+                }
+            });
+
+            if (isMobile) {
+                const joystickZone = document.getElementById('joystickZone'), joystickKnob = document.getElementById('joystickKnob');
+                const lookZone = document.getElementById('lookZone'), sprintBtn = document.getElementById('sprintBtnMobile');
+                let joyTouchId = null, lookTouchId = null; let joyStartX = 0, joyStartY = 0, lookStartX = 0, lookStartY = 0;
+
+                sprintBtn.addEventListener('touchstart', (e) => { e.preventDefault(); isSprinting = true; }, {passive: false});
+                sprintBtn.addEventListener('touchend', (e) => { e.preventDefault(); isSprinting = false; }, {passive: false});
+
+                joystickZone.addEventListener('touchstart', (e) => {
+                    if(isDying) return; e.preventDefault();
+                    for (let touch of e.changedTouches) {
+                        if (joyTouchId === null) {
+                            joyTouchId = touch.identifier; const rect = joystickZone.getBoundingClientRect();
+                            joyStartX = rect.left + rect.width / 2; joyStartY = rect.top + rect.height / 2;
+                            updateJoystick(touch.clientX, touch.clientY);
+                        }
+                    }
+                }, { passive: false });
+
+                lookZone.addEventListener('touchstart', (e) => {
+                    if(isDying) return; e.preventDefault();
+                    for (let touch of e.changedTouches) {
+                        if (lookTouchId === null) { lookTouchId = touch.identifier; lookStartX = touch.clientX; lookStartY = touch.clientY; }
+                    }
+                }, { passive: false });
+
+                window.addEventListener('touchmove', (e) => {
+                    if(isDying) return;
+                    for (let touch of e.changedTouches) {
+                        if (touch.identifier === joyTouchId) updateJoystick(touch.clientX, touch.clientY);
+                        if (touch.identifier === lookTouchId) {
+                            let dx = touch.clientX - lookStartX, dy = touch.clientY - lookStartY;
+                            rotationY -= dx * 0.003; rotationX -= dy * 0.003;
+                            rotationX = Math.max(-Math.PI/2.2, Math.min(Math.PI/2.2, rotationX));
+                            lookStartX = touch.clientX; lookStartY = touch.clientY;
+                        }
+                    }
+                }, { passive: false });
+
+                window.addEventListener('touchend', (e) => {
+                    for (let touch of e.changedTouches) {
+                        if (touch.identifier === joyTouchId) { joyTouchId = null; moveForward = 0; moveRight = 0; joystickKnob.style.transform = `translate(-50%, -50%)`; }
+                        if (touch.identifier === lookTouchId) lookTouchId = null;
+                    }
+                });
+
+                function updateJoystick(clientX, clientY) {
+                    let dx = clientX - joyStartX, dy = clientY - joyStartY;
+                    const maxR = 45; const dist = Math.min(Math.sqrt(dx * dx + dy * dy), maxR);
+                    const angle = Math.atan2(dy, dx); const knobX = Math.cos(angle) * dist, knobY = Math.sin(angle) * dist;
+                    joystickKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+                    moveRight = (knobX / maxR); moveForward = -(knobY / maxR); 
+                }
+            }
+        }
+
+        const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+        function checkCollision(targetPos) {
+            const minDistanceSq = 1.0; 
+            for (let i = 0; i < treePositions.length; i++) {
+                const dx = targetPos.x - treePositions[i].x, dz = targetPos.z - treePositions[i].y;
+                if (dx * dx + dz * dz < minDistanceSq) return true;
+            }
+            return false;
+        }
+
+        // ================= الدورة الرئيسية (Game Loop) =================
+        function updateHUD() {
+            const mins = Math.floor(timeRemaining / 60), secs = Math.floor(timeRemaining % 60);
+            document.getElementById('levelText').innerText = currentLevel;
+            document.getElementById('timerText').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            document.getElementById('staminaBar').style.width = stamina + '%';
+            document.getElementById('staminaBar').style.backgroundColor = stamina > 30 ? '#33ff33' : '#ff3333';
+            document.getElementById('batteryBar').style.width = flashlightBattery + '%';
+            document.getElementById('batteryBar').style.backgroundColor = flashlightBattery > 20 ? '#ffcc00' : '#ff1111';
+        }
+
+        function levelComplete() {
+            if (currentLevel >= maxLevel) {
+                isGameWon = true; if(document.pointerLockElement) document.exitPointerLock();
+                document.getElementById('ui').style.display = 'none'; document.getElementById('hud').style.display = 'none';
+                document.getElementById('winScreen').style.display = 'flex'; return;
+            }
+            isTransitioning = true; if(document.pointerLockElement) document.exitPointerLock();
+            document.getElementById('ui').style.display = 'none';
+            document.getElementById('transitionTitle').innerText = `اكتملت المرحلة ${currentLevel}!`;
+            document.getElementById('transitionScreen').style.display = 'flex';
+
+            currentLevel++; timeRemaining = currentLevel * 60; updateHUD();
+            let fogRed = Math.min(255, 2 + (currentLevel * 10)); scene.fog.color.setRGB(fogRed/255, 5/255, 8/255);
+            if(moonLight) moonLight.color.setRGB(255/255, (200 - currentLevel*10)/255, (200 - currentLevel*10)/255); // القمر يحمر
+
+            const angle = Math.random() * Math.PI * 2;
+            monster.position.set(playerPos.x + Math.cos(angle) * 60, 2.2, playerPos.z + Math.sin(angle) * 60);
+
+            setTimeout(() => {
+                document.getElementById('transitionScreen').style.display = 'none';
+                if (isMobile) document.getElementById('ui').style.display = 'block'; else document.body.requestPointerLock();
+                isTransitioning = false; clock.getDelta(); 
+            }, 4000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (isGameOver || !isGameStarted || isTransitioning || isGameWon) return;
+
+            const delta = clock.getDelta(); const elapsedTime = clock.getElapsedTime();
+
+            if (isDying) {
+                dyingTimer += delta; document.getElementById('bloodOverlay').style.opacity = Math.min(1, dyingTimer * 2);
+                camera.position.x = playerPos.x + (Math.random() - 0.5) * 0.5;
+                camera.position.y = defaultEyeHeight + (Math.random() - 0.5) * 0.5;
+                camera.position.z = playerPos.z + (Math.random() - 0.5) * 0.5;
+                camera.lookAt(monster.position); renderer.render(scene, camera);
+                if (dyingTimer > 1.5) {
+                    isGameOver = true; document.getElementById('ui').style.display = 'none';
+                    document.getElementById('hud').style.display = 'none'; document.getElementById('gameOverScreen').style.display = 'flex';
+                    if(document.pointerLockElement) document.exitPointerLock();
+                }
+                return;
+            }
+
+            timeRemaining -= delta; if (timeRemaining <= 0) { levelComplete(); return; }
+
+            if (Math.random() < 0.003) { lightningLight.intensity = 4; if(Math.random() < 0.3) playThunderSound(); } 
+            else { lightningLight.intensity = Math.max(0, lightningLight.intensity - delta * 15); }
+
+            let currentSpeedLimit = 0.10; 
+            if (isSprinting && stamina > 0 && (Math.abs(moveForward) > 0 || Math.abs(keyForward) > 0 || Math.abs(moveRight) > 0 || Math.abs(keyRight) > 0)) {
+                currentSpeedLimit = 0.22; stamina = Math.max(0, stamina - delta * 25);
+            } else { stamina = Math.min(100, stamina + delta * 15); }
+
+            if (hasFlashlight) {
+                flashlightBattery = Math.max(0, flashlightBattery - delta * 1.5);
+                if (flashlightBattery === 0) flashLight.intensity = 0;
+                else if (flashlightBattery < 20) flashLight.intensity = Math.random() > 0.3 ? (Math.random() * 8.0) : 0.5; 
+                else flashLight.intensity = 15.0;
+            }
+
+            updateHUD();
+
+            const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; dir.normalize();
+            const right = new THREE.Vector3(); right.crossVectors(camera.up, dir).normalize();
+            let finalForward = (moveForward !== 0 ? moveForward : keyForward) * currentSpeedLimit;
+            let finalRight = (moveRight !== 0 ? moveRight : keyRight) * currentSpeedLimit;
+
+            targetVelocity.set(0, 0, 0);
+            if (finalForward !== 0 || finalRight !== 0) { targetVelocity.addScaledVector(dir, finalForward); targetVelocity.addScaledVector(right, finalRight); }
+            currentVelocity.lerp(targetVelocity, 0.15);
+            
+            const nextPos = playerPos.clone().add(currentVelocity);
+            if (!checkCollision(nextPos)) playerPos.copy(nextPos); 
+            else {
+                const nextPosX = playerPos.clone().add(new THREE.Vector3(currentVelocity.x, 0, 0));
+                const nextPosZ = playerPos.clone().add(new THREE.Vector3(0, 0, currentVelocity.z));
+                if (!checkCollision(nextPosX)) playerPos.copy(nextPosX); else if (!checkCollision(nextPosZ)) playerPos.copy(nextPosZ);
+            }
+
+            const currentSpeed = currentVelocity.length();
+            euler.x = rotationX; euler.y = rotationY; euler.z = 0; camera.quaternion.setFromEuler(euler);
+            
+            if (currentSpeed > 0.002) {
+                walkTimer += currentSpeed * (isSprinting ? 28 : 22);
+                camera.position.x = playerPos.x; camera.position.z = playerPos.z;
+                camera.position.y = defaultEyeHeight + Math.abs(Math.sin(walkTimer)) * (isSprinting ? 0.15 : 0.08);
+                if (hasFlashlight) { flashTarget.position.x = Math.sin(walkTimer * 0.5) * 1.5; flashTarget.position.y = -0.2 + Math.cos(walkTimer * 0.5) * 0.5; }
+                if (Math.abs(Math.sin(walkTimer)) > 0.95 && elapsedTime - lastStepTime > (isSprinting ? 0.22 : 0.35)) { playFootstepSound(isSprinting); lastStepTime = elapsedTime; }
+            } else {
+                camera.position.copy(playerPos); camera.position.y = defaultEyeHeight;
+                if (hasFlashlight) flashTarget.position.set(0, -0.2, -10); 
+            }
+
+            if (!hasFlashlight && flashlightItem && playerPos.distanceTo(flashlightItem.position) < 1.8) {
+                hasFlashlight = true; playPickupSound(); scene.remove(flashlightItem); scene.remove(groundItemLight);
+            }
+
+            for (let i = batteriesList.length - 1; i >= 0; i--) {
+                const bat = batteriesList[i]; bat.rotation.y += delta;
+                if (playerPos.distanceTo(bat.position) < 1.5) {
+                    flashlightBattery = Math.min(100, flashlightBattery + 35); playPickupSound();
+                    scene.remove(bat); batteriesList.splice(i, 1);
+                }
+            }
+
+            const monsterSpeed = 0.05 + (currentLevel * 0.008); 
+            const dirToPlayer = new THREE.Vector3().subVectors(playerPos, monster.position); dirToPlayer.y = 0;
+            const distToPlayer = dirToPlayer.length();
+
+            updateHeartbeat(distToPlayer, elapsedTime); 
+
+            if (distToPlayer > 80) {
+                const randomAngle = Math.random() * Math.PI * 2;
+                monster.position.set(playerPos.x + Math.cos(randomAngle) * 40, 2.2, playerPos.z + Math.sin(randomAngle) * 40);
+            }
+            if (distToPlayer > 0.1) {
+                dirToPlayer.normalize(); monster.position.addScaledVector(dirToPlayer, monsterSpeed);
+                monster.position.y = 2.2 + Math.sin(elapsedTime * 15) * 0.15;
+            }
+            if (distToPlayer < 2.0) { isDying = true; playJumpscareSound(); if(document.pointerLockElement) document.exitPointerLock(); }
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            if (!renderer) return;
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
 </body>
 </html>

@@ -3,130 +3,226 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>لعبة الرعب - عالم المجهول (النسخة الكابوسية)</title>
+    <!-- كود إثبات ملكية جوجل الجديد -->
+    <meta name="google-site-verification" content="0LPjx60GSkQHMvfd34l-ctSZvAf_yPJq3Pb6CwMs0DQ" />
+    <title>عالم المجهول - System Awakening</title>
+    
+    <!-- خط Changa الاحترافي -->
+    <link href="https://fonts.googleapis.com/css2?family=Changa:wght@400;600;800&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --sys-blue: #00a2ff; --sys-cyan: #00d5ff; --sys-blue-glow: rgba(0, 162, 255, 0.6);
+            --sys-green: #00ff75; --sys-red: #ff003c; --sys-red-glow: rgba(255, 0, 60, 0.5);
+            --sys-purple: #b700ff; --sys-gold: #ffea00;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
         body, html { width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
         
-        #startScreen, #gameOverScreen, #transitionScreen, #winScreen {
+        /* ------------- تصميم شاشة التحميل الجديدة ------------- */
+        #bootScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #010308; background-image: radial-gradient(circle at center, #061224 0%, #010308 70%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999;
+            transition: opacity 0.8s ease; font-family: 'Changa', sans-serif; padding: 20px;
+        }
+        #bootScreen.fade-out { opacity: 0; pointer-events: none; }
+
+        .boot-title {
+            font-size: clamp(2rem, 7vw, 3.5rem); font-weight: 800; color: #fff;
+            text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 15px var(--sys-cyan), 0 0 30px var(--sys-blue);
+            margin-bottom: 15px; text-align: center; white-space: nowrap; overflow: hidden; width: 0;
+            font-family: 'Changa', sans-serif; direction: ltr;
+        }
+        .typing-anim { animation: typing 2.5s steps(18, end) forwards; }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+
+        .boot-signature {
+            font-size: 1.2rem; color: var(--sys-purple); font-weight: 800; letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(183, 0, 255, 0.6); opacity: 0; transform: translateY(20px);
+            text-align: center; font-family: 'Changa', sans-serif;
+        }
+        
+        .boot-instructions {
+            font-size: 1.2rem; color: #ccc; margin-top: 25px; opacity: 0;
+            text-align: center; max-width: 500px; line-height: 1.6;
+            text-shadow: 0 0 10px rgba(0, 213, 255, 0.2); font-family: 'Changa', sans-serif;
+            transform: translateY(20px);
+        }
+
+        .sig-anim { animation: epicFadeIn 1s ease 2.5s forwards; }
+        
+        .continue-btn {
+            opacity: 0; margin-top: 50px; background: transparent;
+            border: 2px solid var(--sys-cyan); border-radius: 25px;
+            color: #fff; font-size: 1.8rem; font-weight: 800; padding: 12px 60px; cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 213, 255, 0.4);
+            text-shadow: 0 0 10px #fff, 0 0 20px var(--sys-cyan); transition: all 0.3s ease;
+            font-family: 'Changa', sans-serif;
+        }
+        .btn-anim { animation: epicFadeIn 1s ease 3s forwards; }
+        .continue-btn:active, .continue-btn:hover { 
+            background: var(--sys-cyan); color: #000; 
+            box-shadow: 0 0 25px var(--sys-cyan), 0 0 40px var(--sys-cyan); text-shadow: none;
+            transform: scale(0.95);
+        }
+        
+        @keyframes epicFadeIn { to { opacity: 1; transform: translateY(0); } }
+        /* -------------------------------------------------- */
+
+        #gameOverScreen, #transitionScreen, #winScreen {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 100; color: #fff; text-align: center; padding: 20px;
         }
-        #startScreen { background: radial-gradient(circle, rgba(5,8,12,0.95) 0%, rgba(0,0,0,0.99) 100%); }
         #gameOverScreen { display: none; background: radial-gradient(circle, rgba(80,0,0,0.95) 0%, rgba(5,0,0,0.99) 100%); z-index: 200; }
         #transitionScreen { display: none; background: rgba(0,0,0,0.98); z-index: 150; }
         #winScreen { display: none; background: radial-gradient(circle, rgba(0,40,0,0.95) 0%, rgba(0,5,0,0.98) 100%); z-index: 200; }
         
         h1 { font-size: 45px; margin-bottom: 15px; color: #ff1111; text-shadow: 0 0 20px #ff0000; letter-spacing: 2px; }
-        #startScreen h1 { color: #88aaff; text-shadow: 0 0 25px #4466ff; animation: pulseText 3s infinite; }
         #winScreen h1 { color: #33ff33; text-shadow: 0 0 25px #00ff00; }
-        p { font-size: 19px; color: #bbb; margin-bottom: 35px; line-height: 1.7; max-width: 500px; text-shadow: 0 0 5px #000; }
+        p { font-size: 19px; color: #bbb; margin-bottom: 35px; line-height: 1.7; max-width: 520px; text-shadow: 0 0 5px #000; }
         
         .btn {
             padding: 16px 50px; font-size: 22px; color: #fff; background: linear-gradient(180deg, #660000 0%, #220000 100%);
             border: 2px solid #aa1111; border-radius: 35px; cursor: pointer; font-weight: bold;
             box-shadow: 0 0 25px rgba(255, 0, 0, 0.4); transition: all 0.2s; text-transform: uppercase;
         }
-        #startScreen .btn { 
-            background: linear-gradient(180deg, #112244 0%, #000511 100%); 
-            border-color: #3355cc; box-shadow: 0 0 25px rgba(51, 85, 204, 0.5); 
-            animation: pulseBtn 2s infinite;
-        }
         .btn:active { transform: scale(0.92); box-shadow: 0 0 10px rgba(255, 0, 0, 0.8); }
-
-        @keyframes pulseBtn { 0% { transform: scale(1); box-shadow: 0 0 20px rgba(51,85,204,0.3); } 50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(51,85,204,0.7); } 100% { transform: scale(1); box-shadow: 0 0 20px rgba(51,85,204,0.3); } }
-        @keyframes pulseText { 0% { opacity: 0.7; } 50% { opacity: 1; text-shadow: 0 0 40px #6688ff; } 100% { opacity: 0.7; } }
 
         #hud {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            display: none; flex-direction: column; gap: 12px; width: 90%; max-width: 450px;
-            background: rgba(0, 0, 0, 0.8); border: 1px solid #333; border-radius: 12px; padding: 12px 25px;
-            z-index: 50; color: #ccc; font-size: 17px; font-weight: bold; text-shadow: 0 0 8px #000;
+            display: none; flex-direction: column; gap: 10px; width: 90%; max-width: 480px;
+            background: rgba(0, 0, 0, 0.85); border: 1px solid #444; border-radius: 12px; padding: 14px 25px;
+            z-index: 50; color: #ccc; font-size: 16px; font-weight: bold; text-shadow: 0 0 8px #000;
         }
         .hud-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
-        .hud-value { color: #cc3333; font-size: 22px; margin-right: 8px; }
-        .bar-container { width: 65%; height: 12px; background: rgba(0,0,0,0.8); border-radius: 6px; overflow: hidden; border: 1px solid #222; }
+        .hud-value { color: #cc3333; font-size: 20px; margin-right: 6px; }
+        .hud-blue { color: #33aaff; text-shadow: 0 0 10px #0088ff; }
+        .hud-green { color: #33ff66; text-shadow: 0 0 10px #00cc44; }
+        .bar-container { width: 60%; height: 12px; background: rgba(0,0,0,0.9); border-radius: 6px; overflow: hidden; border: 1px solid #333; }
         #staminaBar { width: 100%; height: 100%; background: linear-gradient(90deg, #118811, #22cc22); transition: width 0.1s linear; }
         #batteryBar { width: 100%; height: 100%; background: linear-gradient(90deg, #997700, #ddaa00); transition: width 0.1s linear; }
 
         #vignette {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(0,0,0,0) 30%, rgba(0,0,0,0.98) 100%);
+            background: radial-gradient(circle, rgba(0,0,0,0) 25%, rgba(0,0,0,0.98) 100%);
             pointer-events: none; z-index: 5; display: none;
         }
         
         #bloodOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, rgba(150, 0, 0, 0.5) 0%, rgba(50, 0, 0, 0.95) 100%);
+            background: radial-gradient(circle, rgba(150, 0, 0, 0.6) 0%, rgba(50, 0, 0, 0.98) 100%);
             mix-blend-mode: multiply; opacity: 0; pointer-events: none; z-index: 60; transition: opacity 0.1s;
         }
 
+        #whiteOverlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff; opacity: 0; pointer-events: none; z-index: 160; transition: opacity 0.4s ease-out;
+        }
+
+        #monsterMarker {
+            position: absolute; top: 0; left: 0; display: none;
+            transform: translate(-50%, -100%);
+            color: #ff3333; font-weight: bold; font-size: 15px;
+            background: rgba(10, 0, 0, 0.85); border: 2px solid #ff2222;
+            padding: 6px 14px; border-radius: 20px; pointer-events: none;
+            z-index: 80; box-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+            text-shadow: 0 0 5px #000; text-align: center; white-space: nowrap;
+        }
+
         #ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; }
-        #joystickZone { position: absolute; bottom: 50px; left: 40px; width: 140px; height: 140px; background: rgba(255, 255, 255, 0.03); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.1); pointer-events: auto; }
+        #joystickZone { position: absolute; bottom: 40px; left: 40px; width: 140px; height: 140px; background: rgba(255, 255, 255, 0.03); border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.1); pointer-events: auto; }
         #joystickKnob { position: absolute; top: 50%; left: 50%; width: 55px; height: 55px; background: radial-gradient(circle, rgba(200,200,200,0.5) 0%, rgba(100,100,100,0.2) 100%); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
         #lookZone { position: absolute; top: 0; right: 0; width: 50%; height: 100%; pointer-events: auto; }
-        #sprintBtnMobile { position: absolute; bottom: 50px; right: 40px; width: 85px; height: 85px; background: rgba(200, 30, 30, 0.2); border-radius: 50%; border: 2px solid rgba(200, 50, 50, 0.4); pointer-events: auto; display: flex; justify-content: center; align-items: center; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 16px; transition: all 0.1s; }
-        #sprintBtnMobile:active { background: rgba(200, 30, 30, 0.5); transform: scale(0.9); }
+        #sprintBtnMobile { position: absolute; bottom: 40px; right: 40px; width: 85px; height: 85px; background: rgba(200, 30, 30, 0.2); border-radius: 50%; border: 2px solid rgba(200, 50, 50, 0.4); pointer-events: auto; display: flex; justify-content: center; align-items: center; color: rgba(255,255,255,0.8); font-weight: bold; font-size: 16px; }
+        #sprintBtnMobile:active { background: rgba(200, 30, 30, 0.5); transform: scale(0.92); }
+        
+        #shootBtnMobile { 
+            position: absolute; bottom: 140px; right: 40px; width: 85px; height: 85px; 
+            background: rgba(0, 150, 255, 0.3); border-radius: 50%; border: 2px solid rgba(0, 200, 255, 0.6); 
+            pointer-events: auto; display: none; justify-content: center; align-items: center; 
+            color: #ffffff; font-weight: bold; font-size: 16px; box-shadow: 0 0 15px rgba(0, 170, 255, 0.5);
+        }
+        #shootBtnMobile:active { background: rgba(0, 200, 255, 0.7); transform: scale(0.92); }
     </style>
 </head>
 <body>
 
+    <!-- الشاشة الافتتاحية الجديدة (Boot Screen) -->
+    <div id="bootScreen">
+        <div class="boot-title typing-anim" id="bootTitleText">SYSTEM AWAKENING</div>
+        <div class="boot-signature sig-anim" id="bootSigText">من تطوير karzmasrhan</div>
+        <div class="boot-instructions sig-anim">
+            ابحث عن القطع الـ 3 المضيئة بشعاع أزرق لتركيب سلاح البلازما.<br>عند تجميع السلاح، تتبع العلامة واطلق النار للقضاء على الكيان!
+        </div>
+        <button class="continue-btn btn-anim" id="continueBtn" onclick="startGame()">متابعة</button>
+    </div>
+
     <div id="vignette"></div>
     <div id="bloodOverlay"></div>
+    <div id="whiteOverlay"></div>
+    
+    <div id="monsterMarker">🎯 الكيان (<span id="monsterDist">0</span>m)</div>
 
     <div id="hud">
         <div class="hud-row">
             <div>المرحلة: <span id="levelText" class="hud-value">1</span></div>
-            <div>الوقت: <span id="timerText" class="hud-value">01:00</span></div>
+            <div>قطع السلاح: <span id="partsText" class="hud-value hud-blue">0/3</span></div>
+        </div>
+        <div class="hud-row">
+            <div>مخزون البطاريات: <span id="batteryInvText" class="hud-value hud-green">0</span></div>
         </div>
         <div class="hud-row"><span>اللياقة:</span><div class="bar-container"><div id="staminaBar"></div></div></div>
-        <div class="hud-row"><span>البطارية:</span><div class="bar-container"><div id="batteryBar"></div></div></div>
-    </div>
-
-    <div id="startScreen">
-        <h1>عالم المجهول</h1>
-        <p>الغابة أصبحت شديدة الكثافة.. ولا مكان للهروب.<br>الكيان المظلم يبحث عنك. راقب العيون الحمراء ولا تتوقف عن الركض!</p>
-        <button class="btn" onclick="startGame()">ادخل الغابة</button>
+        <div class="hud-row"><span>طاقة الكشاف:</span><div class="bar-container"><div id="batteryBar"></div></div></div>
     </div>
 
     <div id="transitionScreen">
-        <h1 id="transitionTitle">لقد نجوت!</h1>
-        <p id="transitionDesc">استعد... المرحلة القادمة ستبدأ والكيان أصبح أسرع وأكثر غضباً.</p>
+        <h1 id="transitionTitle" style="color: #44aaff; text-shadow: 0 0 25px #0066ff;">تم تدمير الكيان!</h1>
+        <p id="transitionDesc">استعد... سيعود الكيان مجدداً أسرع وأشد غضباً، وتتناثر أجزاء السلاح في أعماق الغابة.</p>
     </div>
 
     <div id="winScreen">
-        <h1>أسطورة حقيقية!</h1>
-        <p>لقد صمدت طوال الـ 10 مراحل وتغلبت على كابوس الغابة المظلمة.</p>
+        <h1>نجوت من الكابوس!</h1>
+        <p>لقد استطعت القضاء على الكيان في كافة المراحل الـ 10 واستعدت حريتك.</p>
         <button class="btn" style="background: linear-gradient(180deg, #006600 0%, #002200 100%); border-color: #00cc00;" onclick="location.reload()">العب مرة أخرى</button>
     </div>
 
     <div id="gameOverScreen">
-        <h1>لقد تم الإمساك بك!</h1>
-        <p>لم تتمكن من الهرب... ابتلعك الظلام.</p>
-        <button class="btn" onclick="location.reload()">استيقظ وحاول مجدداً</button>
+        <h1>ابتلعك الظلام!</h1>
+        <p>الإمساك بك كان محتماً... حاول مرة أخرى ولا تتوقف عن الحركة.</p>
+        <button class="btn" onclick="location.reload()">إعادة المحاولة</button>
     </div>
 
     <div id="ui">
         <div id="joystickZone"><div id="joystickKnob"></div></div>
         <div id="lookZone"></div>
-        <div id="sprintBtnMobile">اركض</div>
+        <div id="sprintBtnMobile">ركض</div>
+        <div id="shootBtnMobile">إطلاق</div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
         let audioCtx = null;
-        let currentLevel = 1, timeRemaining = 60;
+        let currentLevel = 1;
         const maxLevel = 10;
-        const mapSize = 150; 
+        const mapSize = 160; 
         let isTransitioning = false, isGameWon = false, isGameStarted = false, isDying = false, isGameOver = false, dyingTimer = 0;
         
         let scene, camera, renderer, monster, monsterHead, monsterLeftArm, monsterRightArm, monsterLeftLeg, monsterRightLeg, monsterAura;
-        let flashLight, flashTarget, lightningLight, moonLight, grassMesh;
+        let flashLight, flashTarget, lightningLight, moonLight;
         let flashlightItem, groundItemLight;
         let hasFlashlight = false;
         
+        let partsCollected = 0;
+        const totalPartsNeeded = 3;
+        let weaponPartsList = [];
+        let batteriesInventory = 0;
+        let hasWeapon = false;
+        let playerWeapon = null;
+
         let moveForward = 0, moveRight = 0, keyForward = 0, keyRight = 0, rotationY = 0, rotationX = 0;
         const treePositions = []; const batteriesList = [];
         let isSprinting = false, stamina = 100, flashlightBattery = 100;
@@ -141,8 +237,8 @@
 
         function requestFullScreen() {
             const docElm = document.documentElement;
-            if (docElm.requestFullscreen) { docElm.requestFullscreen(); }
-            else if (docElm.webkitRequestFullscreen) { docElm.webkitRequestFullscreen(); }
+            if (docElm.requestFullscreen) docElm.requestFullscreen();
+            else if (docElm.webkitRequestFullscreen) docElm.webkitRequestFullscreen();
         }
 
         function initAudio() {
@@ -150,9 +246,9 @@
             if (audioCtx.state === 'suspended') audioCtx.resume();
             
             const droneOsc = audioCtx.createOscillator();
-            droneOsc.type = 'sine'; droneOsc.frequency.value = 35;
+            droneOsc.type = 'sine'; droneOsc.frequency.value = 32;
             const droneGain = audioCtx.createGain();
-            droneGain.gain.value = 0.4;
+            droneGain.gain.value = 0.35;
             droneOsc.connect(droneGain); droneGain.connect(audioCtx.destination);
             droneOsc.start();
         }
@@ -161,92 +257,94 @@
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.type = 'triangle';
-            osc.frequency.setValueAtTime(isSprinting ? 70 : 50 + Math.random() * 10, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(5, audioCtx.currentTime + (isSprinting ? 0.08 : 0.12));
-            gain.gain.setValueAtTime(isSprinting ? 0.3 : 0.15, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(isSprinting ? 75 : 55, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(8, audioCtx.currentTime + (isSprinting ? 0.08 : 0.12));
+            gain.gain.setValueAtTime(isSprinting ? 0.25 : 0.12, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (isSprinting ? 0.08 : 0.12));
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.start(); osc.stop(audioCtx.currentTime + (isSprinting ? 0.08 : 0.12));
         }
 
-        function playTwigSnap() {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(1200 + Math.random()*400, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'highpass'; filter.frequency.value = 900;
-            osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-        }
-
         function playPickupSound() {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.15);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.15);
             gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
             osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        }
+        
+        function playPartPickupSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+        }
+
+        function playTwigSnap() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(1100 + Math.random()*300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.08);
+            gain.gain.setValueAtTime(0.18, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08);
         }
 
         function playThunderSound() {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.type = 'square'; osc.frequency.setValueAtTime(70, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(5, audioCtx.currentTime + 2.5);
-            gain.gain.setValueAtTime(0.8, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 2.5);
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass'; filter.frequency.value = 300;
+            osc.type = 'square'; osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(4, audioCtx.currentTime + 2.2);
+            gain.gain.setValueAtTime(0.7, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 2.2);
+            const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 250;
             osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(); osc.stop(audioCtx.currentTime + 2.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 2.2);
+        }
+
+        function playWeaponFireSound() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(1800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 1.2);
+            gain.gain.setValueAtTime(0.9, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.2);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.2);
         }
 
         function playJumpscareSound() {
             if (!audioCtx) return;
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.4);
-            osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 2.0);
-            gain.gain.setValueAtTime(3.0, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 2.0);
-            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 2.0);
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(900, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.3);
+            osc.frequency.linearRampToValueAtTime(25, audioCtx.currentTime + 1.8);
+            gain.gain.setValueAtTime(2.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.8);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 1.8);
         }
 
         let lastHeartbeatTime = 0;
         function updateHeartbeat(distance, time) {
-            if (!audioCtx || distance > 40) return;
-            let rate = Math.max(0.2, (distance / 40) * 1.0); 
+            if (!audioCtx || distance > 38) return;
+            let rate = Math.max(0.2, (distance / 38) * 0.9); 
             if (time - lastHeartbeatTime > rate) {
                 const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-                osc.type = 'sine'; osc.frequency.setValueAtTime(45, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(15, audioCtx.currentTime + 0.2);
-                let vol = Math.max(0.1, 1.2 - (distance / 40));
-                gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(50, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(15, audioCtx.currentTime + 0.18);
+                let vol = Math.max(0.1, 1.1 - (distance / 38));
+                gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18);
+                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.18);
                 lastHeartbeatTime = time;
             }
         }
 
         function createRealisticMoonTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#cbd0d8'; ctx.fillRect(0, 0, 1024, 1024);
-            for(let i=0; i<60000; i++) {
-                ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-                ctx.fillRect(Math.random()*1024, Math.random()*1024, 2, 2);
-            }
-            for(let i = 0; i < 180; i++) {
-                const x = Math.random() * 1024, y = Math.random() * 1024, r = 5 + Math.random() * 45;
-                ctx.beginPath(); ctx.arc(x-r*0.1, y-r*0.1, r, 0, Math.PI*2); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fill(); 
-                ctx.beginPath(); ctx.arc(x+r*0.1, y+r*0.1, r, 0, Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.2)'; ctx.fill(); 
-                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = '#b5bbc5'; ctx.fill(); 
-                ctx.beginPath(); ctx.arc(x, y, r*0.8, 0, Math.PI*2); ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fill(); 
-            }
-            for(let i=0; i<20; i++) {
-                const x = Math.random() * 1024, y = Math.random() * 1024, r = 40 + Math.random() * 160;
-                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2);
-                ctx.fillStyle = 'rgba(15, 20, 25, 0.12)'; 
-                ctx.filter = 'blur(20px)'; ctx.fill(); ctx.filter = 'none';
+            ctx.fillStyle = '#c5cbd3'; ctx.fillRect(0, 0, 512, 512);
+            for(let i=0; i<120; i++) {
+                const x = Math.random() * 512, y = Math.random() * 512, r = 4 + Math.random() * 35;
+                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = 'rgba(100,110,125,0.35)'; ctx.fill();
             }
             return new THREE.CanvasTexture(canvas);
         }
@@ -255,51 +353,47 @@
             const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
             const ctx = canvas.getContext('2d');
             const gradient = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); gradient.addColorStop(0.2, 'rgba(120, 160, 255, 0.6)'); gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)'); gradient.addColorStop(0.3, 'rgba(0, 150, 255, 0.5)'); gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
             ctx.fillStyle = gradient; ctx.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(canvas);
         }
 
         function generateGroundTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 1024; canvas.height = 1024;
-            const context = canvas.getContext('2d'); 
-            context.fillStyle = '#080a08'; context.fillRect(0, 0, 1024, 1024);
-            for (let i = 0; i < 40000; i++) {
-                context.fillStyle = Math.random() > 0.5 ? '#111611' : '#040504';
-                context.beginPath();
-                context.arc(Math.random() * 1024, Math.random() * 1024, Math.random()*2+0.5, 0, Math.PI*2);
-                context.fill();
+            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+            const ctx = canvas.getContext('2d'); 
+            ctx.fillStyle = '#0a0d0a'; ctx.fillRect(0, 0, 512, 512);
+            for (let i = 0; i < 15000; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#131a13' : '#050705';
+                ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
             }
             const tex = new THREE.CanvasTexture(canvas); 
-            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; 
-            tex.repeat.set(100, 100);
+            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(80, 80);
             return tex;
         }
 
         function createBarkTexture() {
-            const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 512;
+            const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 256;
             const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#151210'; ctx.fillRect(0, 0, 512, 512);
-            for(let i=0; i<3000; i++) {
-                ctx.fillStyle = Math.random() > 0.5 ? '#0c0a08' : '#1e1a17';
-                ctx.fillRect(Math.random()*512, Math.random()*512, Math.random()*3+1, Math.random()*25+10);
+            ctx.fillStyle = '#181411'; ctx.fillRect(0, 0, 256, 256);
+            for(let i=0; i<1200; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#0e0b09' : '#241e1a';
+                ctx.fillRect(Math.random()*256, Math.random()*256, Math.random()*3+1, Math.random()*20+8);
             }
             const tex = new THREE.CanvasTexture(canvas);
-            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
-            tex.repeat.set(1, 4);
+            tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(1, 4);
             return tex;
         }
 
         function createRealisticTree(material) {
             const treeGroup = new THREE.Group();
-            const trunkHeight = 10 + Math.random() * 6;
-            const trunkGeo = new THREE.CylinderGeometry(0.5, 0.9, trunkHeight, 7, 3, false);
+            const trunkHeight = 10 + Math.random() * 5;
+            const trunkGeo = new THREE.CylinderGeometry(0.45, 0.85, trunkHeight, 7, 4);
             const pos = trunkGeo.attributes.position;
             for(let i=0; i<pos.count; i++) {
                 const y = pos.getY(i);
                 if (y > -trunkHeight/2) {
-                    const offset = (y + trunkHeight/2) / trunkHeight;
-                    pos.setX(i, pos.getX(i) + (Math.random() - 0.5) * 0.8 * offset);
-                    pos.setZ(i, pos.getZ(i) + (Math.random() - 0.5) * 0.8 * offset);
+                    const factor = (y + trunkHeight/2) / trunkHeight;
+                    pos.setX(i, pos.getX(i) + (Math.random() - 0.5) * 0.6 * factor);
+                    pos.setZ(i, pos.getZ(i) + (Math.random() - 0.5) * 0.6 * factor);
                 }
             }
             trunkGeo.computeVertexNormals();
@@ -308,231 +402,275 @@
             trunk.castShadow = true; trunk.receiveShadow = true;
             treeGroup.add(trunk);
 
-            const numBranches = 4 + Math.floor(Math.random() * 5);
-            for(let i=0; i<numBranches; i++) {
-                const branchLen = 4 + Math.random() * 5;
-                const branchGeo = new THREE.CylinderGeometry(0.08, 0.35, branchLen, 5);
-                branchGeo.translate(0, branchLen/2, 0);
-                const bPos = branchGeo.attributes.position;
-                for(let j=0; j<bPos.count; j++) {
-                    const by = bPos.getY(j);
-                    bPos.setX(j, bPos.getX(j) + (Math.random() - 0.5) * 0.3 * (by/branchLen));
-                }
-                branchGeo.computeVertexNormals();
-
-                const branch = new THREE.Mesh(branchGeo, material);
-                branch.position.y = trunkHeight * (0.3 + Math.random() * 0.6);
-                branch.rotation.z = (Math.random() * 1.2) + 0.4;
+            const branches = 4 + Math.floor(Math.random() * 3);
+            for(let i=0; i<branches; i++) {
+                const bLen = 3.5 + Math.random() * 4;
+                const bGeo = new THREE.CylinderGeometry(0.08, 0.3, bLen, 5);
+                bGeo.translate(0, bLen/2, 0);
+                const branch = new THREE.Mesh(bGeo, material);
+                branch.position.y = trunkHeight * (0.35 + Math.random() * 0.5);
+                branch.rotation.z = (Math.random() * 1.1) + 0.4;
                 branch.rotation.y = Math.random() * Math.PI * 2;
-                branch.rotation.x = (Math.random() - 0.5) * 0.5;
                 branch.castShadow = true; treeGroup.add(branch);
-                
-                if (Math.random() > 0.2) {
-                     const subLen = branchLen * (0.4 + Math.random() * 0.3);
-                     const subGeo = new THREE.CylinderGeometry(0.02, 0.1, subLen, 4);
-                     subGeo.translate(0, subLen/2, 0);
-                     const subBranch = new THREE.Mesh(subGeo, material);
-                     subBranch.position.y = branchLen * (0.4 + Math.random() * 0.5);
-                     subBranch.rotation.z = (Math.random() - 0.5) * 1.5;
-                     subBranch.rotation.x = (Math.random() - 0.5) * 1.5;
-                     subBranch.castShadow = true; branch.add(subBranch);
-                }
             }
             return treeGroup;
         }
 
         function createRealisticBattery() {
-            const batteryGroup = new THREE.Group();
-            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.2, 12), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.2, metalness: 0.8 })); batteryGroup.add(body);
-            const wrapper = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.062, 0.14, 12), new THREE.MeshBasicMaterial({ color: 0x0088ff })); 
-            wrapper.position.y = -0.01; batteryGroup.add(wrapper);
-            const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.04, 12), new THREE.MeshStandardMaterial({ color: 0xcccccc, metalness: 0.9, roughness: 0.1 })); tip.position.y = 0.11; batteryGroup.add(tip);
-            batteryGroup.rotation.x = Math.PI / 2; batteryGroup.rotation.z = Math.random() * Math.PI;
-            return batteryGroup;
+            const group = new THREE.Group();
+            const body = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.22, 12), new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.3, metalness: 0.8 })); group.add(body);
+            const wrap = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.072, 0.15, 12), new THREE.MeshBasicMaterial({ color: 0x0088ff })); wrap.position.y = -0.01; group.add(wrap);
+            const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.04, 12), new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.9 })); tip.position.y = 0.12; group.add(tip);
+            group.rotation.x = Math.PI / 2; group.rotation.z = Math.random() * Math.PI;
+            return group;
+        }
+
+        function createPlayerWeapon() {
+            const weaponGroup = new THREE.Group();
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x1a1e24, roughness: 0.25, metalness: 0.85 });
+            const glowMat = new THREE.MeshBasicMaterial({ color: 0x00aaff });
+            const darkMat = new THREE.MeshStandardMaterial({ color: 0x0a0c0e, roughness: 0.5 });
+
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.16, 0.65), metalMat);
+            body.position.set(0, 0, -0.3); weaponGroup.add(body);
+
+            const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.045, 0.55, 12), metalMat);
+            barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.03, -0.7); weaponGroup.add(barrel);
+
+            const core = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.042, 0.28, 12), glowMat);
+            core.rotation.x = Math.PI / 2; core.position.set(0, 0.02, -0.35); weaponGroup.add(core);
+
+            const grip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.22, 0.08), darkMat);
+            grip.position.set(0, -0.14, -0.12); grip.rotation.x = -0.3; weaponGroup.add(grip);
+
+            const weaponLight = new THREE.PointLight(0x00aaff, 1.5, 3);
+            weaponLight.position.set(0, 0.05, -0.4); weaponGroup.add(weaponLight);
+
+            weaponGroup.position.set(0.28, -0.22, -0.45);
+            weaponGroup.visible = false;
+            return weaponGroup;
+        }
+
+        function createDetailedWeaponPart(typeIndex) {
+            const group = new THREE.Group();
+            const metalMat = new THREE.MeshStandardMaterial({ color: 0x1f242d, roughness: 0.3, metalness: 0.85 });
+            const glowMat = new THREE.MeshBasicMaterial({ color: 0x00aaff });
+            
+            if (typeIndex === 0) {
+                const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 1.2, 12), metalMat);
+                barrel.rotation.z = Math.PI / 2; group.add(barrel);
+                const ring = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.2, 12), glowMat);
+                ring.rotation.z = Math.PI / 2; ring.position.x = 0.3; group.add(ring);
+            } else if (typeIndex === 1) {
+                const coreBox = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 0.25), metalMat); group.add(coreBox);
+                const plasmaCell = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.4, 12), glowMat);
+                plasmaCell.rotation.z = Math.PI / 2; plasmaCell.position.y = 0.18; group.add(plasmaCell);
+            } else {
+                const stock = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.18, 0.15), metalMat); stock.position.set(-0.2, 0, 0); stock.rotation.z = -0.2; group.add(stock);
+                const grip = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.35, 0.12), metalMat); grip.position.set(0.1, -0.15, 0); grip.rotation.z = 0.3; group.add(grip);
+                const indicator = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), glowMat); indicator.position.set(0.1, 0.1, 0); group.add(indicator);
+            }
+
+            const pLight = new THREE.PointLight(0x00aaff, 3.5, 12); pLight.position.y = 0.5; group.add(pLight);
+            const beamGeo = new THREE.CylinderGeometry(0.15, 0.15, 40, 8); beamGeo.translate(0, 20, 0);
+            const beamMat = new THREE.MeshBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.25, side: THREE.DoubleSide });
+            const beam = new THREE.Mesh(beamGeo, beamMat); group.add(beam);
+
+            group.position.y = 0.25;
+            return group;
+        }
+
+        function spawnWeaponParts() {
+            weaponPartsList.forEach(p => scene.remove(p));
+            weaponPartsList = [];
+            partsCollected = 0;
+            hasWeapon = false;
+            if (playerWeapon) playerWeapon.visible = false;
+            document.getElementById('shootBtnMobile').style.display = 'none';
+            document.getElementById('monsterMarker').style.display = 'none';
+            updateHUD();
+
+            for (let i = 0; i < totalPartsNeeded; i++) {
+                const partGroup = createDetailedWeaponPart(i);
+                
+                let minDist, maxDist;
+                
+                if (currentLevel === 1) {
+                    minDist = 10;
+                    maxDist = 25;
+                } else {
+                    minDist = 20 + (currentLevel * 10);
+                    maxDist = 40 + (currentLevel * 12);
+                }
+
+                const dist = minDist + Math.random() * (maxDist - minDist);
+                const angle = Math.random() * Math.PI * 2;
+
+                let px = playerPos.x + Math.cos(angle) * dist;
+                let pz = playerPos.z + Math.sin(angle) * dist;
+
+                px = Math.max(-mapSize + 10, Math.min(mapSize - 10, px));
+                pz = Math.max(-mapSize + 10, Math.min(mapSize - 10, pz));
+
+                partGroup.position.set(px, 0.3, pz);
+                scene.add(partGroup);
+                weaponPartsList.push(partGroup);
+            }
         }
 
         function createRealisticMonster() {
             const group = new THREE.Group();
-            
-            const voidMat = new THREE.MeshStandardMaterial({ 
-                color: 0x000000, 
-                roughness: 1.0, 
-                metalness: 0.0 
-            });
+            const voidMat = new THREE.MeshStandardMaterial({ color: 0x020202, roughness: 0.9, metalness: 0.1 });
 
-            const torsoGeo = new THREE.ConeGeometry(0.6, 5, 7);
+            const torsoGeo = new THREE.ConeGeometry(0.6, 5.5, 8);
             const pos = torsoGeo.attributes.position;
             for(let i=0; i<pos.count; i++) {
-                const y = pos.getY(i);
-                pos.setX(i, pos.getX(i) + Math.sin(y * 2) * 0.2);
-                pos.setZ(i, pos.getZ(i) + Math.cos(y * 2) * 0.2);
+                pos.setX(i, pos.getX(i) + Math.sin(pos.getY(i) * 2) * 0.15);
             }
             torsoGeo.computeVertexNormals();
-            const torso = new THREE.Mesh(torsoGeo, voidMat);
-            torso.position.y = 3.5;
-            torso.rotation.x = Math.PI; 
-            group.add(torso);
+            const torso = new THREE.Mesh(torsoGeo, voidMat); torso.position.y = 3.5; torso.rotation.x = Math.PI; group.add(torso);
 
-            const headGeo = new THREE.SphereGeometry(0.4, 16, 16);
-            const hPos = headGeo.attributes.position;
-            for(let i=0; i<hPos.count; i++) {
-                if(hPos.getY(i) < 0) {
-                    hPos.setY(i, hPos.getY(i) * 2.0); 
-                }
-            }
-            headGeo.computeVertexNormals();
-            monsterHead = new THREE.Mesh(headGeo, voidMat);
-            monsterHead.position.y = 6.2;
-            group.add(monsterHead);
+            monsterHead = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), voidMat); monsterHead.position.y = 6.4; group.add(monsterHead);
 
-            const eyeGeo = new THREE.SphereGeometry(0.06, 8, 8);
             const eyeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            
-            const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-            leftEye.position.set(-0.15, 0.1, 0.35); monsterHead.add(leftEye);
-            
-            const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-            rightEye.position.set(0.15, 0.1, 0.35); monsterHead.add(rightEye);
+            const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), eyeMat); leftEye.position.set(-0.16, 0.1, 0.36); monsterHead.add(leftEye);
+            const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), eyeMat); rightEye.position.set(0.16, 0.1, 0.36); monsterHead.add(rightEye);
             
             const glowTex = createGlowTexture();
             const glowMat = new THREE.SpriteMaterial({ map: glowTex, color: 0xff0000, transparent: true, blending: THREE.AdditiveBlending });
-            
-            const leftGlow = new THREE.Sprite(glowMat); 
-            leftGlow.scale.set(1.5, 1.5, 1); leftGlow.position.copy(leftEye.position); leftGlow.position.z += 0.05; monsterHead.add(leftGlow);
-            
-            const rightGlow = new THREE.Sprite(glowMat); 
-            rightGlow.scale.set(1.5, 1.5, 1); rightGlow.position.copy(rightEye.position); rightGlow.position.z += 0.05; monsterHead.add(rightGlow);
+            const leftGlow = new THREE.Sprite(glowMat); leftGlow.scale.set(1.5, 1.5, 1); leftGlow.position.copy(leftEye.position); monsterHead.add(leftGlow);
+            const rightGlow = new THREE.Sprite(glowMat); rightGlow.scale.set(1.5, 1.5, 1); rightGlow.position.copy(rightEye.position); monsterHead.add(rightGlow);
 
-            const armGeo = new THREE.CylinderGeometry(0.05, 0.01, 4.5, 5);
-            armGeo.translate(0, -2.25, 0); 
-            
-            monsterLeftArm = new THREE.Mesh(armGeo, voidMat);
-            monsterLeftArm.position.set(-0.6, 5.5, 0); monsterLeftArm.rotation.z = 0.4; group.add(monsterLeftArm);
+            const armGeo = new THREE.CylinderGeometry(0.05, 0.01, 4.8, 6); armGeo.translate(0, -2.4, 0);
+            monsterLeftArm = new THREE.Mesh(armGeo, voidMat); monsterLeftArm.position.set(-0.65, 5.6, 0); monsterLeftArm.rotation.z = 0.35; group.add(monsterLeftArm);
+            monsterRightArm = new THREE.Mesh(armGeo, voidMat); monsterRightArm.position.set(0.65, 5.6, 0); monsterRightArm.rotation.z = -0.35; group.add(monsterRightArm);
 
-            monsterRightArm = new THREE.Mesh(armGeo, voidMat);
-            monsterRightArm.position.set(0.6, 5.5, 0); monsterRightArm.rotation.z = -0.4; group.add(monsterRightArm);
+            const legGeo = new THREE.CylinderGeometry(0.08, 0.01, 3.6, 6); legGeo.translate(0, -1.8, 0);
+            monsterLeftLeg = new THREE.Mesh(legGeo, voidMat); monsterLeftLeg.position.set(-0.3, 2.6, 0); group.add(monsterLeftLeg);
+            monsterRightLeg = new THREE.Mesh(legGeo, voidMat); monsterRightLeg.position.set(0.3, 2.6, 0); group.add(monsterRightLeg);
 
-            const tendrilGeo = new THREE.CylinderGeometry(0.08, 0.01, 3.5, 5);
-            tendrilGeo.translate(0, -1.75, 0);
-            
-            monsterLeftLeg = new THREE.Mesh(tendrilGeo, voidMat);
-            monsterLeftLeg.position.set(-0.3, 2.5, 0); group.add(monsterLeftLeg);
+            monsterAura = new THREE.PointLight(0x880000, 2.5, 16); monsterAura.position.set(0, 4.5, 0.8); group.add(monsterAura);
 
-            monsterRightLeg = new THREE.Mesh(tendrilGeo, voidMat);
-            monsterRightLeg.position.set(0.3, 2.5, 0); group.add(monsterRightLeg);
-
-            monsterAura = new THREE.PointLight(0x770000, 2.0, 15);
-            monsterAura.position.set(0, 4.5, 1.0); group.add(monsterAura);
-
-            group.scale.set(1.4, 1.4, 1.4); return group;
+            group.scale.set(1.35, 1.35, 1.35); return group;
         }
 
         function initEngine() {
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x020305);
-            scene.fog = new THREE.FogExp2(0x020305, 0.04); 
+            scene.fog = new THREE.FogExp2(0x020305, 0.038); 
 
             camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 200);
             camera.position.set(0, defaultEyeHeight, 0);
 
+            playerWeapon = createPlayerWeapon();
+            camera.add(playerWeapon);
+
             renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" }); 
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true; 
+            renderer.shadowMap.enabled = true;
             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.outputEncoding = THREE.sRGBEncoding;
             renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 0.8;
+            renderer.toneMappingExposure = 0.85;
             document.body.appendChild(renderer.domElement);
 
-            scene.add(new THREE.AmbientLight(0x05080c, 0.8));
+            scene.add(new THREE.AmbientLight(0x06090e, 0.9));
 
-            const moonGroup = new THREE.Group(); moonGroup.position.set(100, 80, -120); 
-            const moon = new THREE.Mesh(new THREE.SphereGeometry(18, 32, 32), new THREE.MeshBasicMaterial({ map: createRealisticMoonTexture(), color: 0xddddff, fog: false })); 
-            moon.rotation.y = Math.PI / 4; moon.rotation.x = 0.2; moonGroup.add(moon);
+            const moonGroup = new THREE.Group(); moonGroup.position.set(90, 85, -110); 
+            const moon = new THREE.Mesh(new THREE.SphereGeometry(16, 24, 24), new THREE.MeshBasicMaterial({ map: createRealisticMoonTexture(), color: 0xddddff, fog: false })); 
+            moonGroup.add(moon);
             
-            const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: createGlowTexture(), color: 0x88aaff, transparent: true, blending: THREE.AdditiveBlending, fog: false })); 
-            moonGlow.scale.set(120, 120, 1); moonGroup.add(moonGlow);
+            const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: createGlowTexture(), color: 0x6699ff, transparent: true, blending: THREE.AdditiveBlending, fog: false })); 
+            moonGlow.scale.set(110, 110, 1); moonGroup.add(moonGlow);
             scene.add(moonGroup);
 
-            moonLight = new THREE.DirectionalLight(0x446688, 1.5);
+            moonLight = new THREE.DirectionalLight(0x335577, 1.4);
             moonLight.position.copy(moonGroup.position); 
             moonLight.castShadow = true;
-            moonLight.shadow.mapSize.width = 2048;
-            moonLight.shadow.mapSize.height = 2048;
-            moonLight.shadow.camera.near = 10; moonLight.shadow.camera.far = 300;
-            moonLight.shadow.camera.left = -100; moonLight.shadow.camera.right = 100;
-            moonLight.shadow.camera.top = 100; moonLight.shadow.camera.bottom = -100;
+            moonLight.shadow.mapSize.width = 1024; moonLight.shadow.mapSize.height = 1024;
+            moonLight.shadow.camera.near = 10; moonLight.shadow.camera.far = 280;
             scene.add(moonLight);
 
             lightningLight = new THREE.DirectionalLight(0xffffff, 0); lightningLight.position.set(0, 100, 0); scene.add(lightningLight);
 
-            flashLight = new THREE.SpotLight(0xfffae0, 0, 90, Math.PI / 6, 0.6, 1.5);
+            flashLight = new THREE.SpotLight(0xfff8e0, 0, 95, Math.PI / 5.8, 0.55, 1.5);
             flashLight.position.set(0, 0, 0); 
-            flashLight.castShadow = true; 
-            flashLight.shadow.mapSize.width = 1024;
-            flashLight.shadow.mapSize.height = 1024;
-            flashLight.shadow.bias = -0.001;
+            flashLight.castShadow = true;
+            flashLight.shadow.mapSize.width = 1024; flashLight.shadow.mapSize.height = 1024;
             flashTarget = new THREE.Object3D(); flashTarget.position.set(0, 0, -10);
             camera.add(flashTarget); flashLight.target = flashTarget; camera.add(flashLight);
             scene.add(camera);
 
             const groundTex = generateGroundTexture();
-            const groundGeo = new THREE.PlaneGeometry(400, 400, 100, 100);
-            
-            const gPos = groundGeo.attributes.position;
-            for(let i=0; i<gPos.count; i++) { gPos.setZ(i, (Math.random() - 0.5) * 0.5); }
-            groundGeo.computeVertexNormals();
-
-            const ground = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ 
-                map: groundTex, bumpMap: groundTex, bumpScale: 0.8, roughness: 0.85, metalness: 0.05 
-            }));
+            const ground = new THREE.Mesh(new THREE.PlaneGeometry(400, 400, 20, 20), new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9, metalness: 0.1 }));
             ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
 
-            const barkTex = createBarkTexture();
-            const treeMat = new THREE.MeshStandardMaterial({ map: barkTex, roughness: 0.95, metalness: 0.0 });
-
-            for (let i = 0; i < 350; i++) {
+            const treeMat = new THREE.MeshStandardMaterial({ map: createBarkTexture(), roughness: 0.95 });
+            for (let i = 0; i < 320; i++) {
                 const tree = createRealisticTree(treeMat);
-                const treeScale = 0.8 + Math.random() * 1.8; 
-                tree.scale.set(treeScale, treeScale, treeScale); 
-                tree.rotation.y = Math.random() * Math.PI;
-                const x = (Math.random() - 0.5) * 360; 
-                const z = (Math.random() - 0.5) * 360;
-                if (Math.abs(x) < 25 && Math.abs(z) < 25) continue; 
+                const scale = 0.9 + Math.random() * 1.6; tree.scale.set(scale, scale, scale);
+                const x = (Math.random() - 0.5) * 350; 
+                const z = (Math.random() - 0.5) * 350;
+                if (Math.abs(x) < 20 && Math.abs(z) < 20) continue; 
                 tree.position.set(x, 0, z); scene.add(tree); 
                 treePositions.push(new THREE.Vector2(x, z));
             }
 
             flashlightItem = new THREE.Group();
-            const itemBody = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.5, 10), new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.3 })); itemBody.rotation.z = Math.PI / 2; flashlightItem.add(itemBody);
-            const itemLens = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.12, 10), new THREE.MeshBasicMaterial({ color: 0xffffff })); itemLens.rotation.z = -Math.PI / 2; itemLens.position.x = 0.25; flashlightItem.add(itemLens);
-            flashlightItem.position.set(0, 0.08, -5); flashlightItem.rotation.y = Math.PI / 6; scene.add(flashlightItem);
+            const itemBody = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.07, 0.5, 10), new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8 })); itemBody.rotation.z = Math.PI / 2; flashlightItem.add(itemBody);
+            flashlightItem.position.set(0, 0.08, -4.5); scene.add(flashlightItem);
 
-            groundItemLight = new THREE.SpotLight(0xfff5cc, 8.0, 30, Math.PI / 4, 0.5, 1); groundItemLight.position.set(0, 0.15, -5);
-            const itemLightTarget = new THREE.Object3D(); itemLightTarget.position.set(2, 0.15, -15); scene.add(itemLightTarget); groundItemLight.target = itemLightTarget; scene.add(groundItemLight);
+            groundItemLight = new THREE.SpotLight(0xfff5cc, 8.0, 25, Math.PI / 4, 0.5, 1); groundItemLight.position.set(0, 0.15, -4.5);
+            const itemTarget = new THREE.Object3D(); itemTarget.position.set(1, 0, -10); scene.add(itemTarget); groundItemLight.target = itemTarget; scene.add(groundItemLight);
 
-            for (let i = 0; i < 50; i++) {
-                const bat = createRealisticBattery(); bat.position.set((Math.random() - 0.5) * 300, 0.06, (Math.random() - 0.5) * 300); scene.add(bat); batteriesList.push(bat);
+            for (let i = 0; i < 60; i++) {
+                const bat = createRealisticBattery(); bat.position.set((Math.random() - 0.5) * 280, 0.06, (Math.random() - 0.5) * 280); scene.add(bat); batteriesList.push(bat);
             }
 
-            monster = createRealisticMonster(); monster.position.set(0, 0, -55); scene.add(monster);
+            monster = createRealisticMonster(); monster.position.set(0, 0, -65); scene.add(monster);
+            
+            spawnWeaponParts();
             setupControls();
         }
 
+        // تم التعديل على وظيفة بدء اللعبة لربطها بشاشة التحميل الجديدة
         function startGame() {
             requestFullScreen();
             initAudio();
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('vignette').style.display = 'block';
-            document.getElementById('hud').style.display = 'flex';
-            if (isMobile) { document.getElementById('ui').style.display = 'block'; }
-            else { document.body.requestPointerLock(); }
-            initEngine(); isGameStarted = true; clock.start(); animate();
+            
+            const bootScreen = document.getElementById('bootScreen');
+            bootScreen.classList.add('fade-out'); // بدء تأثير التلاشي الناعم
+            
+            // الانتظار حتى انتهاء التلاشي لظهور اللعبة
+            setTimeout(() => {
+                bootScreen.style.display = 'none';
+                document.getElementById('vignette').style.display = 'block';
+                document.getElementById('hud').style.display = 'flex';
+                
+                if (isMobile) { 
+                    document.getElementById('ui').style.display = 'block'; 
+                } else { 
+                    document.body.requestPointerLock(); 
+                }
+                
+                initEngine(); 
+                isGameStarted = true; 
+                clock.start(); 
+                animate();
+            }, 800);
         }
 
-        document.body.addEventListener('click', () => {
-            if (isGameStarted && !isMobile && !isGameOver && !isDying && !isTransitioning) document.body.requestPointerLock();
+        document.body.addEventListener('click', (e) => {
+            // تجاهل النقر إذا كانت شاشة البداية مفتوحة
+            if(document.getElementById('bootScreen').style.display !== 'none' && !isGameStarted) return;
+            
+            if (isGameStarted && !isMobile && !isGameOver && !isDying && !isTransitioning) {
+                if (document.pointerLockElement !== document.body) {
+                    document.body.requestPointerLock();
+                } else if (hasWeapon) {
+                    shootWeapon();
+                }
+            }
         });
 
         function setupControls() {
@@ -558,11 +696,16 @@
 
             if (isMobile) {
                 const joystickZone = document.getElementById('joystickZone'), joystickKnob = document.getElementById('joystickKnob');
-                const lookZone = document.getElementById('lookZone'), sprintBtn = document.getElementById('sprintBtnMobile');
+                const lookZone = document.getElementById('lookZone'), sprintBtn = document.getElementById('sprintBtnMobile'), shootBtn = document.getElementById('shootBtnMobile');
                 let joyTouchId = null, lookTouchId = null; let joyStartX = 0, joyStartY = 0, lookStartX = 0, lookStartY = 0;
 
                 sprintBtn.addEventListener('touchstart', (e) => { e.preventDefault(); isSprinting = true; }, {passive: false});
                 sprintBtn.addEventListener('touchend', (e) => { e.preventDefault(); isSprinting = false; }, {passive: false});
+
+                shootBtn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    shootWeapon();
+                }, {passive: false});
 
                 joystickZone.addEventListener('touchstart', (e) => {
                     if(isDying) return; e.preventDefault();
@@ -623,39 +766,88 @@
         }
 
         function updateHUD() {
-            const mins = Math.floor(timeRemaining / 60), secs = Math.floor(timeRemaining % 60);
             document.getElementById('levelText').innerText = currentLevel;
-            document.getElementById('timerText').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            document.getElementById('partsText').innerText = `${partsCollected}/${totalPartsNeeded}`;
+            document.getElementById('batteryInvText').innerText = batteriesInventory;
+
             document.getElementById('staminaBar').style.width = stamina + '%';
             document.getElementById('staminaBar').style.background = stamina > 30 ? 'linear-gradient(90deg, #118811, #22cc22)' : 'linear-gradient(90deg, #aa0000, #ff3333)';
             document.getElementById('batteryBar').style.width = flashlightBattery + '%';
             document.getElementById('batteryBar').style.background = flashlightBattery > 20 ? 'linear-gradient(90deg, #997700, #ddaa00)' : 'linear-gradient(90deg, #aa0000, #ff1111)';
         }
 
+        function shootWeapon() {
+            if (!hasWeapon || isTransitioning || isDying || isGameOver) return;
+            
+            playWeaponFireSound();
+            
+            if (playerWeapon) {
+                playerWeapon.position.z = -0.35;
+                setTimeout(() => { if (playerWeapon) playerWeapon.position.z = -0.45; }, 100);
+            }
+
+            const origColor = flashLight.color.getHex();
+            const origIntensity = flashLight.intensity;
+            flashLight.color.setHex(0x00aaff);
+            flashLight.intensity = 60.0;
+            setTimeout(() => {
+                flashLight.color.setHex(origColor);
+                flashLight.intensity = origIntensity;
+            }, 120);
+
+            const dist = playerPos.distanceTo(monster.position);
+            if (dist < 38) {
+                killMonster();
+            }
+        }
+
+        function killMonster() {
+            isTransitioning = true;
+            playThunderSound();
+            
+            flashLight.color.setHex(0x00aaff);
+            flashLight.intensity = 180.0;
+            document.getElementById('whiteOverlay').style.opacity = 1;
+            document.getElementById('monsterMarker').style.display = 'none';
+            
+            monster.position.y = -100;
+
+            setTimeout(() => {
+                levelComplete();
+            }, 2200);
+        }
+
         function levelComplete() {
+            document.getElementById('whiteOverlay').style.opacity = 0;
+            flashLight.color.setHex(0xfff8e0);
+            hasWeapon = false;
+            if (playerWeapon) playerWeapon.visible = false;
+            if (monsterAura) monsterAura.intensity = 2.5;
+            document.getElementById('shootBtnMobile').style.display = 'none';
+            document.getElementById('monsterMarker').style.display = 'none';
+            
             if (currentLevel >= maxLevel) {
                 isGameWon = true; if(document.pointerLockElement) document.exitPointerLock();
                 document.getElementById('ui').style.display = 'none'; document.getElementById('hud').style.display = 'none';
                 document.getElementById('winScreen').style.display = 'flex'; return;
             }
-            isTransitioning = true; if(document.pointerLockElement) document.exitPointerLock();
+            
+            if(document.pointerLockElement) document.exitPointerLock();
             document.getElementById('ui').style.display = 'none';
-            document.getElementById('transitionTitle').innerText = `اكتملت المرحلة ${currentLevel}!`;
             document.getElementById('transitionScreen').style.display = 'flex';
 
-            currentLevel++; timeRemaining = currentLevel * 60; updateHUD();
+            currentLevel++; updateHUD();
             
-            let fogDensity = 0.04 + (currentLevel * 0.005); 
-            scene.fog.density = Math.min(0.09, fogDensity);
-            if(moonLight) moonLight.intensity = Math.max(0.1, 1.5 - (currentLevel * 0.15)); 
+            scene.fog.density = Math.min(0.08, 0.038 + (currentLevel * 0.004));
 
-            monster.position.set(playerPos.x + Math.cos(Math.random()*Math.PI*2) * 60, 0, playerPos.z + Math.sin(Math.random()*Math.PI*2) * 60);
+            monster.position.set(playerPos.x + Math.cos(Math.random()*Math.PI*2) * 65, 0, playerPos.z + Math.sin(Math.random()*Math.PI*2) * 65);
+            spawnWeaponParts();
 
             setTimeout(() => {
                 document.getElementById('transitionScreen').style.display = 'none';
                 if (isMobile) document.getElementById('ui').style.display = 'block'; else document.body.requestPointerLock();
                 isTransitioning = false; clock.getDelta(); 
-            }, 4000);
+            }, 3800);
         }
 
         function animate() {
@@ -667,14 +859,12 @@
 
             if (isDying) {
                 dyingTimer += delta; document.getElementById('bloodOverlay').style.opacity = Math.min(1, dyingTimer * 2.5);
-                camera.position.x = playerPos.x + (Math.random() - 0.5) * 0.5;
-                camera.position.y = defaultEyeHeight + (Math.random() - 0.5) * 0.5;
-                camera.position.z = playerPos.z + (Math.random() - 0.5) * 0.5;
-                
-                camera.fov = 70 + (dyingTimer * 50); 
-                camera.updateProjectionMatrix();
+                camera.position.x = playerPos.x + (Math.random() - 0.5) * 0.4;
+                camera.position.y = defaultEyeHeight + (Math.random() - 0.5) * 0.4;
+                camera.position.z = playerPos.z + (Math.random() - 0.5) * 0.4;
+                camera.fov = 70 + (dyingTimer * 45); camera.updateProjectionMatrix();
 
-                const deathLookAt = new THREE.Vector3(monster.position.x, monster.position.y + 7.5, monster.position.z);
+                const deathLookAt = new THREE.Vector3(monster.position.x, monster.position.y + 7.0, monster.position.z);
                 camera.lookAt(deathLookAt); 
                 
                 renderer.render(scene, camera);
@@ -686,10 +876,7 @@
                 return;
             }
 
-            timeRemaining -= delta; if (timeRemaining <= 0) { levelComplete(); return; }
-
             if (Math.random() < 0.005 && elapsedTime - lastSnapTime > 6) { playTwigSnap(); lastSnapTime = elapsedTime; }
-
             if (Math.random() < 0.002) { lightningLight.intensity = 3 + Math.random() * 5; if(Math.random() < 0.4) playThunderSound(); } 
             else { lightningLight.intensity = Math.max(0, lightningLight.intensity - delta * 15); }
 
@@ -699,24 +886,29 @@
             } else { stamina = Math.min(100, stamina + delta * 12); }
 
             if (stamina < 30) {
-                camera.fov = 70 + Math.sin(elapsedTime * 12) * (30 - stamina) * 0.15;
-                camera.updateProjectionMatrix();
+                camera.fov = 70 + Math.sin(elapsedTime * 12) * (30 - stamina) * 0.15; camera.updateProjectionMatrix();
             } else {
-                camera.fov = THREE.MathUtils.lerp(camera.fov, 70, 0.05);
-                camera.updateProjectionMatrix();
+                camera.fov = THREE.MathUtils.lerp(camera.fov, 70, 0.05); camera.updateProjectionMatrix();
             }
 
             if (hasFlashlight) {
-                flashlightBattery = Math.max(0, flashlightBattery - delta * 1.5);
-                if (flashlightBattery === 0) flashLight.intensity = 0;
+                flashlightBattery = Math.max(0, flashlightBattery - delta * 1.6);
+                
+                if (flashlightBattery === 0) {
+                    if (batteriesInventory > 0) {
+                        batteriesInventory--;
+                        flashlightBattery = 100;
+                        playPickupSound();
+                        updateHUD();
+                    } else {
+                        flashLight.intensity = 0;
+                    }
+                } 
                 else if (flashlightBattery < 20) {
-                    flashLight.intensity = Math.random() > 0.3 ? (Math.random() * 25.0) : 0; 
-                    if(Math.random() < 0.1) playTwigSnap(); 
+                    flashLight.intensity = Math.random() > 0.35 ? (Math.random() * 25.0) : 0; 
                 } 
                 else flashLight.intensity = 25.0; 
             }
-
-            updateHUD();
 
             const dir = new THREE.Vector3(); camera.getWorldDirection(dir); dir.y = 0; dir.normalize();
             const right = new THREE.Vector3().crossVectors(dir, camera.up).normalize();
@@ -731,7 +923,6 @@
             currentVelocity.lerp(targetVelocity, 1 - Math.exp(-12 * delta));
             
             const nextPos = playerPos.clone().add(currentVelocity);
-            
             nextPos.x = Math.max(-mapSize, Math.min(mapSize, nextPos.x));
             nextPos.z = Math.max(-mapSize, Math.min(mapSize, nextPos.z));
 
@@ -739,9 +930,6 @@
             else {
                 const nextPosX = playerPos.clone().add(new THREE.Vector3(currentVelocity.x, 0, 0));
                 const nextPosZ = playerPos.clone().add(new THREE.Vector3(0, 0, currentVelocity.z));
-                nextPosX.x = Math.max(-mapSize, Math.min(mapSize, nextPosX.x));
-                nextPosZ.z = Math.max(-mapSize, Math.min(mapSize, nextPosZ.z));
-
                 if (!checkCollision(nextPosX)) playerPos.copy(nextPosX); 
                 else if (!checkCollision(nextPosZ)) playerPos.copy(nextPosZ);
             }
@@ -762,10 +950,9 @@
                 euler.x = rotationX; euler.y = rotationY; euler.z = tiltRoll; 
                 camera.quaternion.setFromEuler(euler);
 
-                if (hasFlashlight) { flashTarget.position.set(0, 0, -10); }
+                if (hasFlashlight) flashTarget.position.set(0, 0, -10);
 
-                // -- تم إصلاح الخطأ في السطر التالي --
-                if (Math.sin(walkTimer * 2) < -0.9 && elapsedTime - lastStepTime > (isSprinting ? 0.22 : 0.35)) { 
+                if (Math.sin(walkTimer * 2) < -0.9 && elapsedTime - lastStepTime > (isSSprint ? 0.22 : 0.35)) { 
                     playFootstepSound(isSprinting); lastStepTime = elapsedTime; 
                 }
             } else {
@@ -776,26 +963,72 @@
                 if (hasFlashlight) flashTarget.position.set(0, 0, -10); 
             }
 
-            if (!hasFlashlight && flashlightItem && playerPos.distanceTo(flashlightItem.position) < 2.0) {
+            if (!hasFlashlight && flashlightItem && playerPos.distanceTo(flashlightItem.position) < 2.2) {
                 hasFlashlight = true; playPickupSound(); scene.remove(flashlightItem); scene.remove(groundItemLight);
             }
 
             for (let i = batteriesList.length - 1; i >= 0; i--) {
                 const bat = batteriesList[i]; 
-                if (playerPos.distanceTo(bat.position) < 1.8) {
-                    flashlightBattery = Math.min(100, flashlightBattery + 40); playPickupSound();
-                    scene.remove(bat); batteriesList.splice(i, 1);
+                if (playerPos.distanceTo(bat.position) < 2.0) {
+                    batteriesInventory++; 
+                    playPickupSound();
+                    scene.remove(bat); 
+                    batteriesList.splice(i, 1);
+                    updateHUD();
                 }
             }
 
-            const monsterSpeed = 0.06 + (currentLevel * 0.012); 
+            for (let i = weaponPartsList.length - 1; i >= 0; i--) {
+                const part = weaponPartsList[i];
+                part.rotation.y += delta * 1.8;
+
+                if (playerPos.distanceTo(part.position) < 2.8) {
+                    partsCollected++;
+                    playPartPickupSound();
+                    scene.remove(part);
+                    weaponPartsList.splice(i, 1);
+                    updateHUD();
+
+                    if (partsCollected >= totalPartsNeeded) {
+                        hasWeapon = true;
+                        if (playerWeapon) playerWeapon.visible = true;
+                        if (isMobile) document.getElementById('shootBtnMobile').style.display = 'flex';
+                        monsterAura.intensity = 12.0;
+                    }
+                }
+            }
+
+            if (hasWeapon && monster && !isTransitioning && !isGameOver && !isDying) {
+                const marker = document.getElementById('monsterMarker');
+                const tempV = monster.position.clone();
+                tempV.y += 6.5;
+
+                const dist = Math.round(playerPos.distanceTo(monster.position));
+                document.getElementById('monsterDist').innerText = dist;
+
+                tempV.project(camera);
+
+                if (tempV.z > 1) {
+                    marker.style.display = 'none';
+                } else {
+                    const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
+                    const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
+                    marker.style.left = `${x}px`;
+                    marker.style.top = `${y}px`;
+                    marker.style.display = 'block';
+                }
+            } else {
+                document.getElementById('monsterMarker').style.display = 'none';
+            }
+
+            const monsterSpeed = 0.065 + (currentLevel * 0.018); 
             const dirToPlayer = new THREE.Vector3().subVectors(playerPos, monster.position); dirToPlayer.y = 0;
             const distToPlayer = dirToPlayer.length();
 
             updateHeartbeat(distToPlayer, elapsedTime); 
 
-            if (distToPlayer > 90) {
-                monster.position.set(playerPos.x + Math.cos(Math.random()*Math.PI*2) * 50, 0, playerPos.z + Math.sin(Math.random()*Math.PI*2) * 50);
+            if (distToPlayer > 110) {
+                monster.position.set(playerPos.x + Math.cos(Math.random()*Math.PI*2) * 55, 0, playerPos.z + Math.sin(Math.random()*Math.PI*2) * 55);
             }
             
             const lookPos = new THREE.Vector3(playerPos.x, monster.position.y + 5.8, playerPos.z);
@@ -806,34 +1039,18 @@
                 monster.position.addScaledVector(dirToPlayer, monsterSpeed);
                 
                 const mTime = elapsedTime * 8;
-                
-                if(monsterLeftArm && monsterRightArm && monsterLeftLeg && monsterRightLeg && monsterHead) {
-                    monster.position.y = Math.sin(elapsedTime * 2.5) * 0.5;
-
+                if(monsterLeftArm) {
+                    monster.position.y = Math.sin(elapsedTime * 2.5) * 0.4;
                     monsterLeftArm.rotation.x = -1.0 + Math.sin(mTime * 1.5) * 0.3;
-                    monsterLeftArm.rotation.z = 0.3 + Math.cos(mTime * 2.2) * 0.2;
-                    
                     monsterRightArm.rotation.x = -1.0 + Math.cos(mTime * 1.3) * 0.3;
-                    monsterRightArm.rotation.z = -0.3 - Math.sin(mTime * 2.1) * 0.2;
-                    
                     monsterLeftLeg.rotation.x = Math.sin(mTime * 1.8) * 0.4;
-                    monsterLeftLeg.rotation.z = Math.cos(mTime * 1.5) * 0.3;
-                    
                     monsterRightLeg.rotation.x = Math.cos(mTime * 1.6) * 0.4;
-                    monsterRightLeg.rotation.z = Math.sin(mTime * 1.7) * 0.3; 
-
-                    monsterHead.rotation.y = Math.sin(elapsedTime * 15) * 0.2;
-                    monsterHead.rotation.z = Math.cos(elapsedTime * 12) * 0.15;
-                    monsterHead.rotation.x = Math.sin(elapsedTime * 10) * 0.2;
-                }
-                
-                if(monsterAura) {
-                    monsterAura.intensity = 1.5 + Math.sin(elapsedTime * 15) * 0.8; 
                 }
             }
             
-            if (distToPlayer < 3.8) { isDying = true; playJumpscareSound(); if(document.pointerLockElement) document.exitPointerLock(); }
+            if (distToPlayer < 3.8 && !isTransitioning) { isDying = true; playJumpscareSound(); if(document.pointerLockElement) document.exitPointerLock(); }
 
+            updateHUD();
             renderer.render(scene, camera);
         }
 
@@ -844,4 +1061,4 @@
         });
     </script>
 </body>
-</html>
+    </html>
